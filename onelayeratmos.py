@@ -39,7 +39,7 @@ print(f'Test value {T_test} should equal 298.8')
 
 # define variables
 year = np.array([1900, 1950, 2000])
-s_0 = np.array([1365, 1366.5, 1368])
+s_0 = np.array([1365, 1366.5, 1368]) #THIS MIGHT MESS UP THE EQ BC OF VARIABLE TYPE 
 t_anom =np.array([-0.4, 0, 0.4])
 
 # calculate an array from these variables using the function defined above
