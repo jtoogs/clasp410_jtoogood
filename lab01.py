@@ -5,7 +5,7 @@ Julian Toogood
 
 This file solves the N-layer atmosphere problem for Lab 01 and all subparts. 
 
-HI SARAH :) TO REPRODUCE THE VALUES AND PLOTS IN MY REPORT, DO THIS:
+Hi Sarah :) to reproduce the values and plots in my report, do this: 
 - TBD
 
 '''
@@ -14,46 +14,158 @@ HI SARAH :) TO REPRODUCE THE VALUES AND PLOTS IN MY REPORT, DO THIS:
 import numpy as np 
 import matplotlib.pyplot as plt
 
+# turn on interactive plotting
+plt.ion()
+
 # declare physical constants
 sigma = 5.67E-8 # Stefan-Boltzmann constant (W/m2/K-4)
 
-def n_layer_atmos(nlayers, epsilon=1, albedo=0.33, s0=1350.0, debug=False):
+def n_layer_atmos(nlayers, epsilon=1.0, albedo=0.33, s0=1350.0, debug=False):
     '''
-    String of doc 
+    Solve the N-layer atmosphere problem and return an array of temperatures
+    with indices corresponding to each layer. 
+
+    Parameters
+    ----------
+    nlayers : int
+        Number of atmosphere layers 
+    epsilon : float, default=1.0
+        Emissivity of atmosphere layers
+    albedo : float, default=0.33
+        Planetary albedo
+    s0 : float, default=1350.0
+        Incoming solar shortwave flux in W/m^2
+    debug : boolean, default=False
+        Activates intermediate print steps to check for incorrect values
+
+    Returns
+    ---------
+    temp : Numpy array, size nlayers+1
+        Array of temperatures at the Earth's surface (layer 0) and each of nlayers
+        atmosphere layers
     '''
 
     # Create array of coefficients, an N+1xN+1 array:
     A = np.zeros([nlayers+1, nlayers+1])
     b = np.zeros(nlayers+1)
 
+    # confirm correct array size 
+    if debug:
+        print(f'Array size: {A.shape}')
+
     # Populate based on our model:
     for i in range(nlayers+1):
         for j in range(nlayers+1):
             if i==j: 
-                A[i, j] = -2+1 * (j==0) #diagonal 
+                A[i, j] = -2 + 1*(j==0) #diagonal 
             else:
-                A[i,j] = epsilon**(i>0) * (1-epsilon)**(np.abs(j-i)-1)
+                # A[i,j] = epsilon**(i>0) * (1-epsilon)**(np.abs(j-i)-1)
+                A[i,j] = epsilon * (1-epsilon)**(np.abs(j-i)-1)
+                
     
-    b[0] = 0.25 * s0 * (1-albedo) # longwave is only the first E_in
+    b[0] = -0.25 * s0 * (1-albedo) # longwave is only the first E_in
+    A[0,1:] /= epsilon # correct first row 
+
+    # check matrix A 
+    if debug:
+        print(A)
 
     # Invert matrix:
     Ainv = np.linalg.inv(A)
+
     # Get solution:
     fluxes = np.matmul(Ainv, b) # Note our use of matrix multiplication!
 
     # turn fluxes into temperatures
-    temps = (fluxes * (1/sigma))**(1/4) # this is not right 
+    temps = (fluxes * (1/sigma) * (1/epsilon))**(1/4) 
+    temps[0] = (fluxes[0] * 1/sigma)**(1/4) # surface is a blackbody 
+    
+    # verify 
+    if debug:
+        print(temps)
 
     # return temperatures to caller 
     return temps 
 
-    # verify 
-    print(temps)
+def question_3(debug=False):
+    '''
+    Run this code to reproduce all results for question 3.
 
+    Parameters
+    ----------
+    debug : boolean, default=False
+        Activates intermediate print steps to check for incorrect values
+
+    Returns: none
+    '''
+
+    # calculate temps for varying emissivity 
+    e = np.arange(0.1,1.1,0.1)
+    exp1Temps = np.zeros(e.size)
+    for i in np.arange(0,e.size):
+        exp1Temps[i] = n_layer_atmos(1,epsilon=e[i])[0]
+
+    # calculate temps for varying nlayers 
+    n = np.arange(1,6)
+    exp2Temps = np.zeros(n.size)
+    for j in np.arange(0,n.size):
+        exp2Temps[j] =n_layer_atmos(n[j], epsilon=0.255)[0]
+
+    # confirm correct values 
     if debug:
-        print(f'A[i={i},j={j}] = {A[i, j]}')
-        print(f'{A}')
+        print(f'Emissivity array: {e}')
+        print(f'nlayers array: {n}')
+        print(f'Exp1 temp results: {exp1Temps}')
+        print(f'Exp2 temp results: {exp2Temps}')
+    
+    # print exp2 results for presentation
+    if not debug:
+        print('How many layers of atmosphere are required to produce a surface temperature of ~288K?')
+        print(f'1 layer: {exp2Temps[0]}')
+        print(f'2 layers: {exp2Temps[1]}')
+        print(f'3 layers: {exp2Temps[2]}')
+        print(f'4 layers: {exp2Temps[3]}')
+        print(f'5 layers: {exp2Temps[4]}')
+        print('5 layers of atmosphere are required to produce a surface temperature of ~288K.')
 
+    # plot 
+    fig, [ax1, ax2] = plt.subplots(2,1)
+    ax1.plot(e,exp1Temps)
+    ax2.plot(n,exp2Temps)
+
+    plt.axhline(y=288, color='r', linestyle='--', label='288 K')
+
+    fig.suptitle('Earth Surface Temperature Dependence')
+    ax1.set_xlabel('Emissivity ($\epsilon$)')
+    ax1.set_ylabel('Surface Temperature ($K$)')
+    ax2.set_xlabel('Number of Layers ($n$)')
+    ax2.set_ylabel('Surface Temperature ($K$)')
+    ax2.set_xticks([1,2,3,4,5])
+    ax2.legend(loc='best')
+
+    fig.tight_layout()
+
+def question_4(debug=False):
+    '''
+    Run this code to reproduce all results for question 4.
+
+    Parameters
+    ----------
+    debug : boolean, default=False
+        Activates intermediate print steps to check for incorrect values
+
+    Returns: none
+    '''
+
+    # for increasing index from 2 to an arbitrarily large non infinie number
+    # calculate surface T for #index layers 
+        # s0=2600 W/m^2
+        # epsilon=1
+        # google venus albedo 
+    # test whether surface T is greater than 700K 
+    # print this #index and the previous 
+
+    
 
 
 
