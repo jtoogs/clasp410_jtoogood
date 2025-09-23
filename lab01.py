@@ -273,12 +273,12 @@ def question_5(debug=False):
         print(temps)
     
     fig, ax = plt.subplots(1,1)
-    ax.plot(np.arange(0,6),temps)
+    ax.plot(temps,np.arange(0,6))
     fig.suptitle('Earth vertical temperature profile, nuclear winter scenario')
-    ax.set_xlabel('atmosphere level')
-    ax.set_xticks([0,1,2,3,4,5])
-    ax.set_xticklabels(['surface',1,2,3,4,5])
-    ax.set_ylabel('$K$')
+    ax.set_ylabel('atmosphere level')
+    ax.set_yticks([0,1,2,3,4,5])
+    ax.set_yticklabels(['surface',1,2,3,4,5])
+    ax.set_xlabel('$K$')
 
 
 # known limitations for discussion section: 
