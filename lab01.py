@@ -7,7 +7,7 @@ This file solves the N-layer atmosphere problem for Lab 01 and all subparts.
 
 Hi Sarah :) 
 To reproduce the values and plots in my report, do this: 
-- TBD 1,2 
+- Questions 1 and 2 are fully answered in the lab report. 
 - For question 3, run the function question_3() with no inputs.
 - For question 4, run the function question_4() with no inputs.
 - For question 5, run the function question_5() with no inputs.
@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 
 # turn on interactive plotting, set stylesheet
 plt.ion()
-plt.style.use('fivethirtyeight')
+plt.style.use('seaborn-v0_8-poster')
 
 # declare physical constants
 sigma = 5.67E-8 # Stefan-Boltzmann constant (W/m2/K-4)
@@ -136,8 +136,8 @@ def question_3(debug=False):
 
     # plot 
     fig, [ax1, ax2] = plt.subplots(2,1)
-    ax1.plot(e,exp1Temps)
-    ax2.plot(n,exp2Temps)
+    ax1.plot(e,exp1Temps,color='b')
+    ax2.plot(n,exp2Temps,color='g')
 
     plt.axhline(y=288, color='r', linestyle='--', label='288 K')
 
@@ -275,9 +275,17 @@ def question_5(debug=False):
     
     fig, ax = plt.subplots(1,1)
     ax.plot(temps,np.arange(0,6))
-    fig.suptitle('Earth vertical temperature profile, nuclear winter scenario')
+    ax.set_title('Earth vertical temperature profile, nuclear winter scenario')
     ax.set_ylabel('atmosphere level')
     ax.set_yticks([0,1,2,3,4,5])
     ax.set_yticklabels(['surface',1,2,3,4,5])
     ax.set_xlabel('$K$')
-    
+
+print('Question 3:')
+question_3()
+
+print('Question 4:')
+question_4()
+
+print('Question 5:')
+question_5()
