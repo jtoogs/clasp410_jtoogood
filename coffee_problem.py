@@ -74,6 +74,21 @@ def verify_code():
     print("Numerical solution is: ", t_code)
     print("Difference is: ", t_real-t_code)
 
+def euler_coffee(dt=0.25,k=1/300.,T_env=20.0,T_init=90.,t_final=300.):
+    '''
+    Solve the cooling equation using Euler's method
+
+    '''
+    time = np.arange(0,t_final,dt)
+    temp = np.zeros(time.size)
+    temp[0] = T_init
+
+    # solve
+    for i in range(time.size-1):
+        temp[i+1] = temp[i] - dt * k * (temp[i] - T_env)
+
+    return time, temp    
+
 # solve the actual problem using the functions declared above
 # quantitative solution:
 t_1 = time_to_temp(65) # add cream at T=65 to get to 60
