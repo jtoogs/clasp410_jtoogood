@@ -93,6 +93,33 @@ def n_layer_atmos(nlayers, epsilon=1.0, albedo=0.33, s0=1350.0, debug=False):
     # return temperatures to caller 
     return temps 
 
+def question_2(debug=False):
+    '''
+    Run this code to reproduce all results for question 2.
+
+    Parameters
+    ----------
+    debug : boolean, default=False
+        Activates intermediate print steps to check for incorrect values
+
+    Returns: none
+    '''
+    
+    temps = n_layer_atmos(3)
+    
+    print('Compare the following to verify model functionality.')
+    print('Our values: ')
+    print(f'layer 3: {round(temps[3],1)} Kelvin')
+    print(f'layer 2: {round(temps[2],1)} Kelvin')
+    print(f'layer 1: {round(temps[1],1)} Kelvin')
+    print(f'surface: {round(temps[0],1)} Kelvin')
+    
+    print('Website values: ')
+    print(f'layer 3: 251.3 Kelvin')
+    print(f'layer 2: 298.8 Kelvin')
+    print(f'layer 1: 330.7 Kelvin')
+    print(f'surface: 355.4 Kelvin')
+
 def question_3(debug=False):
     '''
     Run this code to reproduce all results for question 3.
@@ -141,7 +168,7 @@ def question_3(debug=False):
 
     plt.axhline(y=288, color='r', linestyle='--', label='288 K')
 
-    fig.suptitle('Earth Surface Temperature Dependence')
+    ax1.set_title('Earth Surface Temperature Dependence')
     ax1.set_xlabel('Emissivity ($\epsilon$)')
     ax1.set_ylabel('Surface Temperature ($K$)')
     ax2.set_xlabel('Number of Layers ($n$)')
@@ -279,7 +306,10 @@ def question_5(debug=False):
     ax.set_ylabel('atmosphere level')
     ax.set_yticks([0,1,2,3,4,5])
     ax.set_yticklabels(['surface',1,2,3,4,5])
-    ax.set_xlabel('$K$')
+    ax.set_xlabel('Temperature $K$')
+
+print('Question 2:')
+question_2()
 
 print('Question 3:')
 question_3()
