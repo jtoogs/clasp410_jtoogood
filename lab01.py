@@ -280,7 +280,4 @@ def question_5(debug=False):
     ax.set_yticks([0,1,2,3,4,5])
     ax.set_yticklabels(['surface',1,2,3,4,5])
     ax.set_xlabel('$K$')
-
-
-# known limitations for discussion section: 
-# climate change, dynamic energy exchange within system (e.g. weather)
+    

@@ -20,9 +20,8 @@ x = np.arange(0, 6*np.pi, dx)
 sinx = np.sin(x)
 cosx = np.cos(x) # analytical solution
 
+# fwd and bck are the same calculation but they index to different parts of the x series 
 # python indexing is [start:stop) - ie upper bound is exclusive
-
-# they are the same but they index to different parts of the x series  
 fwd_diff = (sinx[1:] - sinx[:-1]) / dx
 bkd_diff = (sinx[1:] - sinx[:-1]) / dx
 cnt_diff = (sinx[2:] - sinx[:-2]) / (2*dx)
@@ -49,6 +48,7 @@ for dx in dxs:
     err_fwd.append(np.abs(fwd_diff[-1]-np.cos(x[-1])))
     err_cnt.append(np.abs(cnt_diff[-1]-np.cos(x[-2])))
 
+# plot 
 fig, ax = plt.subplots(1,1)
 ax.loglog(dxs,err_fwd,'.',label='forward diff')
 ax.loglog(dxs,err_cnt,'.',label='central diff')
