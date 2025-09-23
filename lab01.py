@@ -18,8 +18,9 @@ To reproduce the values and plots in my report, do this:
 import numpy as np 
 import matplotlib.pyplot as plt
 
-# turn on interactive plotting
+# turn on interactive plotting, set stylesheet
 plt.ion()
+plt.style.use('fivethirtyeight')
 
 # declare physical constants
 sigma = 5.67E-8 # Stefan-Boltzmann constant (W/m2/K-4)
