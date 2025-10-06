@@ -76,7 +76,7 @@ def verify_code():
 
 def euler_coffee(dt=0.25,k=1/300.,T_env=20.0,T_init=90.,t_final=300.):
     '''
-    Solve the cooling equation using Euler's method
+    Solve the cooling equation zusing Euler's method
 
     '''
     time = np.arange(0,t_final,dt)
