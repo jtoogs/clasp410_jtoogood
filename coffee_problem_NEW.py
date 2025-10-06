@@ -6,7 +6,8 @@ Solve the coffee problem to learn how to drink coffee effectively.
 import numpy as np
 import matplotlib.pyplot as plt
 
-plt.style.use('fivethirtyeight')
+plt.style.use('seaborn-v0_8-poster')
+plt.ion() 
 
 def solve_temp(t, T_init=90., T_env=20.0, k=1/300.):
     '''
@@ -152,28 +153,3 @@ def explore_numerical_solve(dt=1.0):
 
     return fig
 
-
-
-dt=0.25
-
-# Create ANALYTICAL time series of temperatures for cooling coffee.
-t = np.arange(0, 300., 0.5)
-temp1 = solve_temp(t)  # also the same as control case.
-
-# Obtain Euler solver numerical solution.
-etime, etemp = solve_euler(newtcool, t_final=300., dt=dt)
-etime2, etemp2 = solve_rk8(newtcool, t_final=300., dt=dt)
-
-# Make a beautiful plot to illustrate how the numerical solution
-# performs.
-fig, ax = plt.subplots(1, 1, figsize=[10.24,  5.91])
-# Plot lines we want to show:
-ax.plot(t, temp1, label='Analytical Solution')
-ax.plot(etime, etemp, 'o--', label=f'Euler Solution for $\Delta t={dt}s$')
-ax.plot(etime2, etemp2, 'o--', label=f'RK8 Solution')
-
-ax.legend()
-ax.set_xlabel('Time (s)')
-ax.set_ylabel('Temperature (C)')
-ax.set_title('Analytical vs. Numerical: The Greatest Battle of Our Time')
-fig.tight_layout()
