@@ -173,7 +173,8 @@ def solve_rk8(func, N1_init=.5, N2_init=.5, dT=10, t_final=100.0,
 def check_solver(func):
     '''
     Quickly see if the function is working properly. 
-    Also serves as scaffolding/sandbox for preparing question functions  
+    Largely derived from lecture + lab instructions.
+    Also serves as scaffolding/sandbox for preparing question functions. 
 
     Parameters: 
     ----------
@@ -204,28 +205,32 @@ def check_solver(func):
 
     return fig
 
-def question_1(debug=False):
+def question_1_plot(dT_comp,dT_pp):
     '''
     Run this code to reproduce all results for question 1.
 
     Parameters
     ----------
-    debug : boolean, default=False
-        Activates intermediate print steps to check for incorrect values
+    dT_comp: float
+        Time step for competition equations 
+    dT_pp: float
+        Time step for predator/prey equations 
 
-    Returns: none
+    Returns
+    ----------
+    fig, ax1, ax2 : matplotlib figure + axes objects
+        Figure and axes displaying solver solutions in a preformatted template
     '''
 
     # Obtain solver solutions.
-    etime_comp, eN1_comp, eN2_comp = euler_solve(dNdt_comp,N1_init=0.3,N2_init=0.6,dT=1.0)
-    rk8time_comp, rk8N1_comp, rk8N2_comp = solve_rk8(dNdt_comp,N1_init=0.3,N2_init=0.6,dT=1.0)
-    etime_pp, eN1_pp, eN2_pp = euler_solve(dNdt_pp,N1_init=0.3,N2_init=0.6,dT=0.05)
-    rk8time_pp, rk8N1_pp, rk8N2_pp = solve_rk8(dNdt_pp,N1_init=0.3,N2_init=0.6,dT=0.05)
+    etime_comp, eN1_comp, eN2_comp = euler_solve(dNdt_comp,N1_init=0.3,N2_init=0.6,dT=dT_comp)
+    rk8time_comp, rk8N1_comp, rk8N2_comp = solve_rk8(dNdt_comp,N1_init=0.3,N2_init=0.6,dT=dT_comp)
+    etime_pp, eN1_pp, eN2_pp = euler_solve(dNdt_pp,N1_init=0.3,N2_init=0.6,dT=dT_pp)
+    rk8time_pp, rk8N1_pp, rk8N2_pp = solve_rk8(dNdt_pp,N1_init=0.3,N2_init=0.6,dT=dT_pp)
 
-    # Make a beautiful plot to illustrate how the numerical solution
-    # performs.
+    # Plot solutions + decorate appropriately 
     fig, [ax1, ax2] = plt.subplots(1, 2, figsize=[12,6])
-    # Plot lines we want to show:
+    
     ax1.plot(etime_comp, eN1_comp, '-', color='b', label=f'N1 Euler')
     ax1.plot(etime_comp, eN2_comp, '-', color='orangered', label=f'N2 Euler')
     ax1.plot(rk8time_comp, rk8N1_comp, ':', color='b', label=f'N1 RK8')
@@ -253,10 +258,32 @@ def question_1(debug=False):
     
     fig.tight_layout()
 
+    return fig, ax1, ax2 
+
+def question_1():
+    '''
+    Run this code to reproduce all results for question 1.
+
+    Parameters: none
+
+    Returns: none
+    '''
+
     print("We verify our code is working by reproducing the figure from the lab instructions.")
+    fig, ax1, ax2 = question_1_plot(dT_comp=1.0,dT_pp=0.05)
     print("Our figure matches the one from the lab instructions, so our code appears to be " \
     "working correctly.")
-    
+
+    print("We expect that both solvers will improve for smaller time steps.")
+    fig, ax1, ax2 = question_1_plot(dT_comp=0.5,dT_pp=0.025)
+    print("We confirm this by reproducing the previous figure with smaller time steps and " \
+          "observing that the solutions get closer to one another.")
+
+    print("We also expect that the Euler method will break down sooner than DOP853.")
+    fig, ax1, ax2 = question_1_plot(dT_comp=2.0,dT_pp=0.10)
+    print("We confirm this by reproducing the previous figure with larger time steps and " \
+          "observing that the Euler method solutions drift significantly further away than the DOP853 solutions.")
+
 
 def question_2(debug=False):
     '''
