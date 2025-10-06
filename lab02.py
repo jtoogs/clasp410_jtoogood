@@ -53,8 +53,7 @@ def dNdt_comp(t, N, a=1, b=2, c=1, d=3):
 
     return dN1dt, dN2dt
 
-
-def euler_solve(func, N1_init=.5, N2_init=.5, dT=.1, t_final=100.0, [...]):
+def euler_solve(func, N1_init=.5, N2_init=.5, dT=.1, t_final=100.0):
     '''
     <Your good docstring here>
 
@@ -74,21 +73,20 @@ def euler_solve(func, N1_init=.5, N2_init=.5, dT=.1, t_final=100.0, [...]):
     ## from lecture example 
     # configure the problem
     time = np.arange(0, t_final, dT)
-    fx = np.zeros(time.size)
-    fx[0] = f0
+    N1 = np.zeros(time.size)
+    N2 = np.zeros(time.size)
+    dN1 = np.zeros(time.size)
+    dN2 = np.zeros(time.size)
+    N1[0] = N1_init
+    N2[0] = N2_init 
 
-    # solve 
+    # solve for the function values 
     for i in range(time.size-1):
-        fx[i+1] = fx[i] + dT * func(time[i], fx[i], **kwargs)
+        dN1[i], dN2[i] = func(i, [N1[i], N2[i]] ) #retrieve derivatives at index i 
+        N1[i+1] = N1[i] + (dT * dN1[i]) #euler method to find next function value 
+        N2[i+1] = N2[i] + (dT * dN2[i])
 
-
-    ## from lab handout 
-    for i in range(1, time.size):
-        dN1, dN2 = func(i, [N1[i-1], N2[i-1]] )
-
-    return dN1, dN2 
-
-
+    return time, N1, N2 
 
 def solve_rk8(func, N1_init=.5, N2_init=.5, dT=10, t_final=100.0,
 a=1, b=2, c=1, d=3):
@@ -104,7 +102,7 @@ a=1, b=2, c=1, d=3):
     N1_init, N2_init : float
         Initial conditions for `N1` and `N2`, ranging from (0,1]
     dT : float, default=10
-        Largest timestep allowed in years.
+        Largest time step allowed in years.
     t_final : float, default=100
         Integrate until this value is reached, in years.
     a, b, c, d : float, default=1, 2, 1, 3
@@ -118,15 +116,50 @@ a=1, b=2, c=1, d=3):
         Normalized population density solutions.
     '''
     from scipy.integrate import solve_ivp
+    
     # Configure the initial value problem solver
     result = solve_ivp(func, [0, t_final], [N1_init, N2_init],
     args=[a, b, c, d], method='DOP853', max_step=dT)
+    
     # Perform the integration
     time, N1, N2 = result.t, result.y[0, :], result.y[1, :]
+    
     # Return values to caller.
     return time, N1, N2
 
+def check_solver(dt=1.0):
+    '''
+    Quickly see if the function is working properly. 
+    Also serves as scaffolding/sandbox for preparing question functions  
 
+    Parameters
+    ---------
+    dt : float, defaults to 1.0
+        Set the time step for the solver.
+    '''
+
+    t = np.arange(0, 300., 0.5)
+
+    # Obtain Euler solver numerical solution.
+    etime, eN1, eN2 = euler_solve(dNdt_comp)
+    rk8time, rk8N1, rk8N2 = solve_rk8(dNdt_comp)
+
+    # Make a beautiful plot to illustrate how the numerical solution
+    # performs.
+    fig, ax = plt.subplots(1, 1, figsize=[10.24,  5.91])
+    # Plot lines we want to show:
+    ax.plot(etime, eN1, 'o--', label=f'N1 Euler Solution for $\Delta t={dt}s$')
+    ax.plot(etime, eN2, 'o--', label=f'N2 Euler Solution for $\Delta t={dt}s$')
+    ax.plot(rk8time, rk8N1, 'o--', label=f'N1 RK8 Solution')
+    ax.plot(rk8time, rk8N2, 'o--', label=f'N2 RK8 Solution')
+
+    ax.legend(loc='lower right')
+    ax.set_xlabel('Time (years)')
+    ax.set_ylabel('Population (%)')
+    ax.set_title('TEST FIGURE')
+    fig.tight_layout()
+
+    return fig
 
 def question_1(debug=False):
     '''
@@ -152,9 +185,9 @@ def question_2(debug=False):
     Returns: none
     '''
 
-def question_2(debug=False):
+def question_3(debug=False):
     '''
-    Run this code to reproduce all results for question 2.
+    Run this code to reproduce all results for question 3.
 
     Parameters
     ----------
@@ -163,7 +196,6 @@ def question_2(debug=False):
 
     Returns: none
     '''
-
 
 
 print('Question 1:')
