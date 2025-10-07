@@ -10,6 +10,7 @@ To reproduce the values and plots in my report, do this:
 - For question 1, run the function question_1() with no inputs.
 - For question 2, run the function question_2() with no inputs.
 - For question 3, run the function question_3() with no inputs.
+Running this script will also call these functions in order. 
 
 '''
 
@@ -273,7 +274,7 @@ def question_2_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=3):
 
     Returns
     ----------
-    fig, ax1, ax2 : matplotlib figure + axes objects
+    fig, ax : matplotlib figure + axes objects
         Figure and axes displaying solver solutions in a preformatted template
     '''
 
@@ -316,26 +317,65 @@ def question_3_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=3):
 
     Returns
     ----------
-    fig, ax1, ax2 : matplotlib figure + axes objects
+    fig, ax: matplotlib figure + axes objects
         Figure and axes displaying solver solutions in a preformatted template
     '''
 
     # Obtain solver solutions.
-    etime_pp, eN1_pp, eN2_pp = euler_solve(dNdt_pp,N1_init=N1_init,N2_init=N2_init,dT=0.05,a=a,b=b,c=c,d=d)
-    rk8time_pp, rk8N1_pp, rk8N2_pp = solve_rk8(dNdt_pp,N1_init=N1_init,N2_init=N2_init,dT=0.05,a=a,b=b,c=c,d=d)
+    #etime_pp, eN1_pp, eN2_pp = euler_solve(dNdt_pp,N1_init=N1_init,N2_init=N2_init,dT=0.05,t_final=50.0,a=a,b=b,c=c,d=d)
+    rk8time_pp, rk8N1_pp, rk8N2_pp = solve_rk8(dNdt_pp,N1_init=N1_init,N2_init=N2_init,dT=0.05,t_final=50.0,a=a,b=b,c=c,d=d)
 
     # Plot solutions + decorate appropriately 
     fig, ax = plt.subplots(1, 1, figsize=[6,6])
 
-    ax.plot(etime_pp, eN1_pp, '-', color='b', label=f'N1 (Prey) Euler')
-    ax.plot(etime_pp, eN2_pp, '-', color='orangered', label=f'N2 (Predator) Euler')
-    ax.plot(rk8time_pp, rk8N1_pp, ':', color='b', label=f'N1 (Prey) RK8')
-    ax.plot(rk8time_pp, rk8N2_pp, ':', color='orangered', label=f'N2 (Predator) RK8')
+    #ax.plot(etime_pp, eN1_pp, '-', color='b', label=f'N1 (Prey) Euler')
+    #ax.plot(etime_pp, eN2_pp, '-', color='orangered', label=f'N2 (Predator) Euler')
+    ax.plot(rk8time_pp, rk8N1_pp, '-', color='b', label=f'N1 (Prey) RK8')
+    ax.plot(rk8time_pp, rk8N2_pp, '-', color='orangered', label=f'N2 (Predator) RK8')
 
     ax.legend(loc='upper left')
     ax.set_xlabel('Time $(years)$')
     ax.set_ylabel('Population/Carrying Cap.')
     ax.set_title(f'Lokta-Volterra Predator-Prey Model')
+    ax.grid(True)
+
+    plt.figtext(0.01, 0.01, f'Coefficients: a={a}, b={b}, c={c}, d={d} \n N1_init={N1_init}, N2_init={N2_init}', 
+            ha='left', va='bottom', fontsize=10)
+    
+    fig.tight_layout()
+
+    return fig, ax 
+
+def phase_diagram(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=3):
+    '''
+    Function to create phase diagrams associated with question 3.
+
+    Parameters
+    ----------
+    N1_init, N2_init : float, default=0.5
+        Initial conditions for `N1` and `N2`, ranging from (0,1]
+    a, b, c, d : float, default=1, 2, 1, 3
+        Lotka-Volterra coefficient values
+
+    Returns
+    ----------
+    fig, ax1, ax2 : matplotlib figure + axes objects
+        Figure and axes displaying solver solutions in a preformatted template
+    '''
+    # Obtain solver solutions.
+    rk8time_pp, rk8N1_pp, rk8N2_pp = solve_rk8(dNdt_pp,N1_init=N1_init,N2_init=N2_init,dT=0.05,t_final=50.0,a=a,b=b,c=c,d=d)
+
+    # Plot solutions + decorate appropriately 
+    fig, ax = plt.subplots(1, 1, figsize=[6,6])
+
+    ax.scatter(rk8N1_pp, rk8N2_pp, edgecolor='b', facecolor='w', marker='.', linewidth = 1, label=f'N1 (Prey) RK8')
+
+    ax.set_xlim([0,3.25])
+    ax.set_ylim([0,3.25])
+    ax.legend(loc='upper left')
+    ax.set_xlabel('Prey Population')
+    ax.set_ylabel('Predator Population')
+    ax.set_title(f'Predator-Prey Phase Diagram')
     ax.grid(True)
 
     plt.figtext(0.01, 0.01, f'Coefficients: a={a}, b={b}, c={c}, d={d} \n N1_init={N1_init}, N2_init={N2_init}', 
@@ -391,19 +431,46 @@ def question_2():
     print("The larger of the two starting populations tends to remain the larger population, with a difference from the other population " \
     "proportional to the ratio between the starting populations.")
 
-
-def question_3(debug=False):
-
+def question_3():
     '''
     Run this code to reproduce all results for question 3.
 
-    Parameters
-    ----------
-    debug : boolean, default=False
-        Activates intermediate print steps to check for incorrect values
+    Parameters: none
 
     Returns: none
     '''
+    fig, ax = question_3_plot(N1_init=0.5,N2_init=0.5,a=1, b=1, c=1, d=1)
+    print("We identify the equilibrium state that results from setting the initial values of N1 and N2 to 0.5 "
+    "and setting all of the coefficients equal to 1.")
+
+    print("By doubling each of the coefficients, we can observe how the populations change under the influence of each one.")
+    fig, ax = question_3_plot(N1_init=0.5,N2_init=0.5,a=2, b=1, c=1, d=1)
+    fig, ax = question_3_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=1)
+    fig, ax = question_3_plot(N1_init=0.5,N2_init=0.5,a=1, b=1, c=2, d=1)
+    fig, ax = question_3_plot(N1_init=0.5,N2_init=0.5,a=1, b=1, c=1, d=2)
+    print("Increasing the coefficient a results in an equilibrium with a much larger predator population." \
+    "Increasing the coefficient b results in an equilibrium with a slightly larger prey population." \
+    "Increasing the coefficient c results in an equilibrium with a much larger prey population." \
+    "Increasing the coefficient d results in an equilibrium with a slightly larger predator population.")
+
+    print("We can observe the effects of different initial conditions by solving for initial populations with several different ratios to one another.")
+    fig, ax = question_3_plot(N1_init=1.0,N2_init=0.5,a=1, b=1, c=1, d=1)
+    ax.set_ylim([0,3.25])
+    fig, ax = question_3_plot(N1_init=0.6,N2_init=0.2,a=1, b=1, c=1, d=1)
+    ax.set_ylim([0,3.25])
+    fig, ax = question_3_plot(N1_init=0.8,N2_init=0.2,a=1, b=1, c=1, d=1)
+    ax.set_ylim([0,3.25])
+    fig, ax = question_3_plot(N1_init=0.5,N2_init=0.4,a=1, b=1, c=1, d=1)
+    ax.set_ylim([0,3.25])
+    print("The relationship between the two starting populations is unclear.")
+
+    print("To more deeply analyze the effects of the initial populations, we will make phase diagrams to illustrate regular and irregular behavior.")
+    fig, ax = phase_diagram(N1_init=1.0,N2_init=0.5,a=1, b=1, c=1, d=1)
+    fig, ax = phase_diagram(N1_init=0.6,N2_init=0.2,a=1, b=1, c=1, d=1)
+    fig, ax = phase_diagram(N1_init=0.8,N2_init=0.2,a=1, b=1, c=1, d=1)
+    fig, ax = phase_diagram(N1_init=0.5,N2_init=0.4,a=1, b=1, c=1, d=1)
+    print("We expect that the phase diagrams should tell us which population tends to dominate the periodic cycle based on asymmetry in the plot, which is not observed here.")
+
 
 # check solver
 # check_solver(dNdt_comp)
@@ -412,12 +479,11 @@ def question_3(debug=False):
 # close figures
 # plt.close('all')
 
-### UNCOMMENT BELOW BEFORE SUBMITTING ### 
-# print('Question 1:')
-# question_1()
+print('Question 1:')
+question_1()
 
-# print('Question 2:')
-# question_2()
+print('Question 2:')
+question_2()
 
 print('Question 3:')
 question_3()
