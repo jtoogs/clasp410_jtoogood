@@ -289,13 +289,14 @@ def question_2_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=3):
     ax.plot(rk8time_comp, rk8N1_comp, ':', color='b', label=f'N1 RK8')
     ax.plot(rk8time_comp, rk8N2_comp, ':', color='orangered', label=f'N2 RK8')
 
+    ax.set_ylim([0,1])
     ax.legend(loc='upper left')
     ax.set_xlabel('Time $(years)$')
     ax.set_ylabel('Population/Carrying Cap.')
     ax.set_title(f'Lokta-Volterra Competition Model')
     ax.grid(True)
 
-    plt.figtext(0.01, 0.01, f'Coefficients: a=1, b=2, c=1, d=3 \n N1_init={N1_init}, N2_init={N2_init}', 
+    plt.figtext(0.01, 0.01, f'Coefficients: a={a}, b={b}, c={c}, d={d} \n N1_init={N1_init}, N2_init={N2_init}', 
             ha='left', va='bottom', fontsize=10)
     
     fig.tight_layout()
@@ -337,7 +338,7 @@ def question_3_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=3):
     ax.set_title(f'Lokta-Volterra Predator-Prey Model')
     ax.grid(True)
 
-    plt.figtext(0.01, 0.01, f'Coefficients: a=1, b=2, c=1, d=3 \n N1_init={N1_init}, N2_init={N2_init}', 
+    plt.figtext(0.01, 0.01, f'Coefficients: a={a}, b={b}, c={c}, d={d} \n N1_init={N1_init}, N2_init={N2_init}', 
             ha='left', va='bottom', fontsize=10)
     
     fig.tight_layout()
@@ -362,21 +363,37 @@ def question_1():
     print("For a 40 percent increase in time step, similar end behavior to the original time step is observed for both solvers.")
     fig, ax1, ax2 = question_1_plot(dT_comp=1.4,dT_pp=0.07)
 
-def question_2(debug=False):
+def question_2():
     '''
     Run this code to reproduce all results for question 2.
 
-    Parameters
-    ----------
-    debug : boolean, default=False
-        Activates intermediate print steps to check for incorrect values
+    Parameters: none
 
     Returns: none
     '''
-    fig, ax = question_2_plot(N1_init=0.3,N2_init=0.6,a=1, b=2, c=1, d=3)
+    fig, ax = question_2_plot(N1_init=0.5,N2_init=0.5,a=1, b=1, c=1, d=1)
+    print("We identify the equilibrium state that results from setting the initial values of N1 and N2 to 0.5 "
+    "and setting all of the coefficients equal to 1.")
+
+    print("By doubling each of the coefficients, we can observe how the populations change under the influence of each one.")
+    fig, ax = question_2_plot(N1_init=0.5,N2_init=0.5,a=2, b=1, c=1, d=1)
+    fig, ax = question_2_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=1)
+    fig, ax = question_2_plot(N1_init=0.5,N2_init=0.5,a=1, b=1, c=2, d=1)
+    fig, ax = question_2_plot(N1_init=0.5,N2_init=0.5,a=1, b=1, c=1, d=2)
+    print("Increasing the coefficients a and c tends to result in an increase for their associated population, " \
+    "while increasing the coefficients b and d tends to result in a decrease for their associated population.")
+
+    print("We can observe the effects of different initial conditions by solving for initial populations with several different ratios to one another.")
+    fig, ax = question_2_plot(N1_init=1.0,N2_init=0.5,a=1, b=1, c=1, d=1)
+    fig, ax = question_2_plot(N1_init=0.6,N2_init=0.2,a=1, b=1, c=1, d=1)
+    fig, ax = question_2_plot(N1_init=0.8,N2_init=0.2,a=1, b=1, c=1, d=1)
+    fig, ax = question_2_plot(N1_init=0.5,N2_init=0.4,a=1, b=1, c=1, d=1)
+    print("The larger of the two starting populations tends to remain the larger population, with a difference from the other population " \
+    "proportional to the ratio between the starting populations.")
 
 
 def question_3(debug=False):
+
     '''
     Run this code to reproduce all results for question 3.
 
@@ -399,8 +416,8 @@ def question_3(debug=False):
 # print('Question 1:')
 # question_1()
 
-print('Question 2:')
-question_2()
+# print('Question 2:')
+# question_2()
 
 print('Question 3:')
 question_3()
