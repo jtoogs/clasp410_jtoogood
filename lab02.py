@@ -207,7 +207,7 @@ def check_solver(func):
 
 def question_1_plot(dT_comp,dT_pp):
     '''
-    Run this code to reproduce all results for question 1.
+    Function to expedite plotting associated with question 1.
 
     Parameters
     ----------
@@ -239,7 +239,7 @@ def question_1_plot(dT_comp,dT_pp):
     ax1.legend(loc='upper left')
     ax1.set_xlabel('Time $(years)$')
     ax1.set_ylabel('Population/Carrying Cap.')
-    ax1.set_title('Lokta-Volterra Competition Model')
+    ax1.set_title(f'Lokta-Volterra Competition Model')
     ax1.grid(True)
 
     ax2.plot(etime_pp, eN1_pp, '-', color='b', label=f'N1 (Prey) Euler')
@@ -250,15 +250,99 @@ def question_1_plot(dT_comp,dT_pp):
     ax2.legend(loc='upper left')
     ax2.set_xlabel('Time $(years)$')
     ax2.set_ylabel('Population/Carrying Cap.')
-    ax2.set_title('Lokta-Volterra Predator-Prey Model')
+    ax2.set_title(f'Lokta-Volterra Predator-Prey Model')
     ax2.grid(True)
 
-    plt.figtext(0.5, 0.01, 'Coefficients: a=1, b=2, c=1, d=3', 
+    plt.figtext(0.5, 0.01, f'Coefficients: a=1, b=2, c=1, d=3 \n dT_comp={dT_comp} years, dT_pp={dT_pp} years', 
             ha='center', va='bottom', fontsize=12)
     
     fig.tight_layout()
 
     return fig, ax1, ax2 
+
+def question_2_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=3):
+    '''
+    Function to expedite plotting associated with question 2.
+
+    Parameters
+    ----------
+    N1_init, N2_init : float, default=0.5
+        Initial conditions for `N1` and `N2`, ranging from (0,1]
+    a, b, c, d : float, default=1, 2, 1, 3
+        Lotka-Volterra coefficient values
+
+    Returns
+    ----------
+    fig, ax1, ax2 : matplotlib figure + axes objects
+        Figure and axes displaying solver solutions in a preformatted template
+    '''
+
+    # Obtain solver solutions.
+    etime_comp, eN1_comp, eN2_comp = euler_solve(dNdt_comp,N1_init=N1_init,N2_init=N2_init,dT=1.0,a=a,b=b,c=c,d=d)
+    rk8time_comp, rk8N1_comp, rk8N2_comp = solve_rk8(dNdt_comp,N1_init=N1_init,N2_init=N2_init,dT=1.0,a=a,b=b,c=c,d=d)
+
+    # Plot solutions + decorate appropriately 
+    fig, ax = plt.subplots(1, 1, figsize=[6,6])
+    
+    ax.plot(etime_comp, eN1_comp, '-', color='b', label=f'N1 Euler')
+    ax.plot(etime_comp, eN2_comp, '-', color='orangered', label=f'N2 Euler')
+    ax.plot(rk8time_comp, rk8N1_comp, ':', color='b', label=f'N1 RK8')
+    ax.plot(rk8time_comp, rk8N2_comp, ':', color='orangered', label=f'N2 RK8')
+
+    ax.legend(loc='upper left')
+    ax.set_xlabel('Time $(years)$')
+    ax.set_ylabel('Population/Carrying Cap.')
+    ax.set_title(f'Lokta-Volterra Competition Model')
+    ax.grid(True)
+
+    plt.figtext(0.01, 0.01, f'Coefficients: a=1, b=2, c=1, d=3 \n N1_init={N1_init}, N2_init={N2_init}', 
+            ha='left', va='bottom', fontsize=10)
+    
+    fig.tight_layout()
+
+    return fig, ax
+
+def question_3_plot(N1_init=0.5,N2_init=0.5,a=1, b=2, c=1, d=3):
+    '''
+    Function to expedite plotting associated with question 3.
+
+    Parameters
+    ----------
+    N1_init, N2_init : float, default=0.5
+        Initial conditions for `N1` and `N2`, ranging from (0,1]
+    a, b, c, d : float, default=1, 2, 1, 3
+        Lotka-Volterra coefficient values
+
+    Returns
+    ----------
+    fig, ax1, ax2 : matplotlib figure + axes objects
+        Figure and axes displaying solver solutions in a preformatted template
+    '''
+
+    # Obtain solver solutions.
+    etime_pp, eN1_pp, eN2_pp = euler_solve(dNdt_pp,N1_init=N1_init,N2_init=N2_init,dT=0.05,a=a,b=b,c=c,d=d)
+    rk8time_pp, rk8N1_pp, rk8N2_pp = solve_rk8(dNdt_pp,N1_init=N1_init,N2_init=N2_init,dT=0.05,a=a,b=b,c=c,d=d)
+
+    # Plot solutions + decorate appropriately 
+    fig, ax = plt.subplots(1, 1, figsize=[6,6])
+
+    ax.plot(etime_pp, eN1_pp, '-', color='b', label=f'N1 (Prey) Euler')
+    ax.plot(etime_pp, eN2_pp, '-', color='orangered', label=f'N2 (Predator) Euler')
+    ax.plot(rk8time_pp, rk8N1_pp, ':', color='b', label=f'N1 (Prey) RK8')
+    ax.plot(rk8time_pp, rk8N2_pp, ':', color='orangered', label=f'N2 (Predator) RK8')
+
+    ax.legend(loc='upper left')
+    ax.set_xlabel('Time $(years)$')
+    ax.set_ylabel('Population/Carrying Cap.')
+    ax.set_title(f'Lokta-Volterra Predator-Prey Model')
+    ax.grid(True)
+
+    plt.figtext(0.01, 0.01, f'Coefficients: a=1, b=2, c=1, d=3 \n N1_init={N1_init}, N2_init={N2_init}', 
+            ha='left', va='bottom', fontsize=10)
+    
+    fig.tight_layout()
+
+    return fig, ax 
 
 def question_1():
     '''
@@ -268,22 +352,15 @@ def question_1():
 
     Returns: none
     '''
-
-    print("We verify our code is working by reproducing the figure from the lab instructions.")
     fig, ax1, ax2 = question_1_plot(dT_comp=1.0,dT_pp=0.05)
     print("Our figure matches the one from the lab instructions, so our code appears to be " \
     "working correctly.")
 
-    print("We expect that both solvers will improve for smaller time steps.")
-    fig, ax1, ax2 = question_1_plot(dT_comp=0.5,dT_pp=0.025)
-    print("We confirm this by reproducing the previous figure with smaller time steps and " \
-          "observing that the solutions get closer to one another.")
+    print("For a 40 percent reduction in time step, similar end behavior to the original time step is observed for both solvers.")
+    fig, ax1, ax2 = question_1_plot(dT_comp=0.6,dT_pp=0.03)
 
-    print("We also expect that the Euler method will break down sooner than DOP853.")
-    fig, ax1, ax2 = question_1_plot(dT_comp=2.0,dT_pp=0.10)
-    print("We confirm this by reproducing the previous figure with larger time steps and " \
-          "observing that the Euler method solutions drift significantly further away than the DOP853 solutions.")
-
+    print("For a 40 percent increase in time step, similar end behavior to the original time step is observed for both solvers.")
+    fig, ax1, ax2 = question_1_plot(dT_comp=1.4,dT_pp=0.07)
 
 def question_2(debug=False):
     '''
@@ -296,6 +373,8 @@ def question_2(debug=False):
 
     Returns: none
     '''
+    fig, ax = question_2_plot(N1_init=0.3,N2_init=0.6,a=1, b=2, c=1, d=3)
+
 
 def question_3(debug=False):
     '''
@@ -309,12 +388,16 @@ def question_3(debug=False):
     Returns: none
     '''
 
-#check solver
+# check solver
 # check_solver(dNdt_comp)
 # check_solver(dNdt_pp)
 
-print('Question 1:')
-question_1()
+# close figures
+# plt.close('all')
+
+### UNCOMMENT BELOW BEFORE SUBMITTING ### 
+# print('Question 1:')
+# question_1()
 
 print('Question 2:')
 question_2()
