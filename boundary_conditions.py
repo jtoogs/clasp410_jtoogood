@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 '''
-Workspace for completing the homework titled "Neumann vs. Dirchlet"
+Workspace for completing the homework titled "Neumann vs. Dirichlet"
 Built around code from Dan's Github file "lab04_diffuse.py"
 '''
 
@@ -48,13 +48,12 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
 
     # Create solution matrix; set initial conditions
     U = np.zeros([M, N])
+    U[:, 0] = 4*x - 4*x**2                                        
+
     if use_Neumann == True: 
         print("Using Neumann")
-
     else:
-        print("Using Dirchlet")
-        U[:, 0] = 4*x - 4*x**2
-
+        print("Using Dirichlet")
 
     # Get our "r" coeff:
     r = c2 * (dt/dx**2)
@@ -62,6 +61,9 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
     # Solve our equation!
     for j in range(N-1):
         U[1:M-1, j+1] = (1-2*r) * U[1:M-1, j] + r*(U[2:M, j] + U[:M-2, j])
+        if use_Neumann == True: 
+            U[0,j+1] = U[0,j]                                               # HERES THE LINE 
+            U[M-1,j+1] = U[M-1,j]
 
     # Return our pretty solution to the caller:
     return t, x, U
@@ -112,3 +114,32 @@ def plot_heatsolve(t, x, U, title=None, **kwargs):
     fig.tight_layout()
 
     return fig, ax, cbar
+
+
+t1,x1,U1 = solve_heat(use_Neumann=False)
+t2,x2,U2 = solve_heat(use_Neumann=True)
+
+# Create and configure figure & axes:
+fig, [ax1, ax2] = plt.subplots(2, 1, figsize=(8, 8))
+
+# Add contour to our axes:
+contour = ax1.pcolor(t1, x1, U1)
+cbar = fig.colorbar(contour)
+
+# Add labels to stuff!
+cbar.set_label(r'Temperature ($^{\circ}C$)')
+ax1.set_xlabel('Time ($s$)')
+ax1.set_ylabel('Position ($m$)')
+ax1.set_title('Dirichlet Boundary Conditions')
+
+# Add contour to our axes:
+contour = ax2.pcolor(t2, x2, U2)
+cbar = fig.colorbar(contour)
+
+# Add labels to stuff!
+cbar.set_label(r'Temperature ($^{\circ}C$)')
+ax2.set_xlabel('Time ($s$)')
+ax2.set_ylabel('Position ($m$)')
+ax2.set_title('Neumann Boundary Conditions')
+
+fig.tight_layout()
