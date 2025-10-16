@@ -13,7 +13,7 @@ plt.style.use('fivethirtyeight')
 plt.ion()
 
 
-def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, fx=None, lowerbound=None, upperbound=None):
+def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowerbound=None, upperbound=None):
     '''
     A function for solving the heat equation
 
@@ -29,8 +29,10 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, fx=None, lowerboun
         Time step 
     c2 : float
         c^2, the square of the diffusion coefficient.        
-    fx : function, defaults to None 
+    initial : function, defaults to None 
         determines initial conditions #SOMETHING BWOKEN 
+        Must accept an array of positions and return temperature at those
+        positions as an equally sized array.
     lowerbound, upperbound : float, defaults to None 
         determines boundary conditions 
         Neumann boundary conditions use dU/dx=0 in this case 
@@ -46,6 +48,12 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, fx=None, lowerboun
     ----------
     Lab04 uses dirichlet boundary conditions but the UB value changes as a function of time
     '''
+
+    # Check our stability criterion:
+    dt_max = dx**2 / (2*c2)
+    if dt > dt_max:
+        raise ValueError(f'DANGER: dt={dt} > dt_max={dt_max}.')
+    
     # Get grid sizes:
     N = int(tstop / dt)
     M = int(xstop / dx)
