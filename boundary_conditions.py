@@ -13,7 +13,7 @@ plt.style.use('fivethirtyeight')
 plt.ion()
 
 
-def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True, fx=None, lowerbound=None, upperbound=None):
+def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, fx=None, lowerbound=None, upperbound=None):
     '''
     A function for solving the heat equation
 
@@ -28,14 +28,12 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True, 
     dt : float
         Time step 
     c2 : float
-        c^2, the square of the diffusion coefficient.
-    use_Neumann : boolean, default is True
-        Toggles between Neumann (T) and Dirchlet (F) boundary conditions 
-        Neumann boundary conditions use dU/dx=0 in this case 
+        c^2, the square of the diffusion coefficient.        
     fx : function, defaults to None 
         determines initial conditions 
     lowerbound, upperbound : float, defaults to None 
         determines boundary conditions 
+        Neumann boundary conditions use dU/dx=0 in this case 
 
     Returns
     -------
@@ -43,6 +41,10 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True, 
         Space and time values, respectively.
     U : Numpy array
         The solution of the heat equation, size is nSpace x nTime
+
+    Comments
+    ----------
+    Lab04 uses dirichlet boundary conditions but the UB value changes as a function of time
     '''
     # Get grid sizes:
     N = int(tstop / dt)
@@ -54,35 +56,48 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True, 
 
     # Create solution matrix; set initial conditions
     U = np.zeros([M, N])
-    U[:, 0] = fx
-    U[:, 0] = 4*x - 4*x**2   #hardcoded override for hw 
-
-    if use_Neumann == True: 
-        print("Using Neumann")
-    else:
-        print("Using Dirichlet")
-
-    # Dan: determine boundary conditions from boolean arg
-    if lowerbound is not None:
-        U[0,:] = lowerbound
-    if upperbound is not None: 
-        U[-1,:] = upperbound
+    # U[:, 0] = fx
+    U[:, 0] = 4*x - 4*x**2   #hardcoded override for hw       
 
     # Get our "r" coeff:
     r = c2 * (dt/dx**2)
 
+    # announce boundary condition type
+    if lowerbound is None: 
+        print("Using Neumann (lower)")
+    elif callable(lowerbound):
+        print("Using Dirichlet (lower bound changes)")
+    else: 
+        print("Using Dirichlet (lower bound constant)")
+    if upperbound is None: 
+        print("Using Neumann (upper)")
+    elif callable(upperbound): 
+        print("Using Dirichlet (upper bound changes)")
+    else:
+        print("Using Dirichlet (upper bound constant)")
+
     # Solve our equation!
     for j in range(N-1):
         U[1:M-1, j+1] = (1-2*r) * U[1:M-1, j] + r*(U[2:M, j] + U[:M-2, j])
-        if use_Neumann == True: 
-            if lowerbound is None: 
-                U[0,j+1] = U[1,j+1]   
-            if upperbound is None:                                             # HERES THE LINE 
-                U[-1,j+1] = U[-2,j+1]
+        if lowerbound is None: 
+            U[0,j+1] = U[1,j+1] 
+        elif callable(lowerbound):
+            U[0,:] = lowerbound(t[j+1])
+        else: 
+            U[0,:] = lowerbound
+        if upperbound is None: 
+            U[-1,j+1] = U[-2,j+1]
+        elif callable(upperbound): 
+            U[-1,:] = upperbound(t[j+1])
+        else:
+            U[-1,:] = upperbound
 
     # Return our pretty solution to the caller:
     return t, x, U
 
+def climate(t):
+    '''t in secs, returns temp'''
+    return 10 * np.sin(t/np.pi) #something wrong when passing this into solve_heat.. not sure why 
 
 def plot_heatsolve(t, x, U, title=None, **kwargs):
     '''
@@ -130,9 +145,8 @@ def plot_heatsolve(t, x, U, title=None, **kwargs):
 
     return fig, ax, cbar
 
-
-t1,x1,U1 = solve_heat(use_Neumann=False)
-t2,x2,U2 = solve_heat(use_Neumann=True)
+t1,x1,U1 = solve_heat(lowerbound=0,upperbound=0)
+t2,x2,U2 = solve_heat()
 
 # Create and configure figure & axes:
 fig, [ax1, ax2] = plt.subplots(2, 1, figsize=(8, 8))
