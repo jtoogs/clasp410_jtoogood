@@ -63,8 +63,8 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
     for j in range(N-1):
         U[1:M-1, j+1] = (1-2*r) * U[1:M-1, j] + r*(U[2:M, j] + U[:M-2, j])
         if use_Neumann == True: 
-            U[0,j+1] = U[0,j]                                               # HERES THE LINE 
-            U[M-1,j+1] = U[M-1,j]
+            U[0,j+1] = U[1,j+1]                                               # HERES THE LINE 
+            U[-1,j+1] = U[-2,j+1]
 
     # Return our pretty solution to the caller:
     return t, x, U
