@@ -30,6 +30,7 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
         c^2, the square of the diffusion coefficient.
     use_Neumann : boolean, default is True
         Toggles between Neumann (T) and Dirchlet (F) boundary conditions 
+        Neumann boundary conditions use dU/dx=0 in this case 
 
     Returns
     -------
