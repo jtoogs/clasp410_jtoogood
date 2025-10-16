@@ -30,7 +30,7 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, fx=None, lowerboun
     c2 : float
         c^2, the square of the diffusion coefficient.        
     fx : function, defaults to None 
-        determines initial conditions 
+        determines initial conditions #SOMETHING BWOKEN 
     lowerbound, upperbound : float, defaults to None 
         determines boundary conditions 
         Neumann boundary conditions use dU/dx=0 in this case 
