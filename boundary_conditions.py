@@ -123,7 +123,7 @@ t2,x2,U2 = solve_heat(use_Neumann=True)
 fig, [ax1, ax2] = plt.subplots(2, 1, figsize=(8, 8))
 
 # Add contour to our axes:
-contour = ax1.pcolor(t1, x1, U1)
+contour = ax1.pcolor(t1, x1, U1,cmap="hot")
 cbar = fig.colorbar(contour)
 
 # Add labels to stuff!
@@ -133,7 +133,7 @@ ax1.set_ylabel('Position ($m$)')
 ax1.set_title('Dirichlet Boundary Conditions')
 
 # Add contour to our axes:
-contour = ax2.pcolor(t2, x2, U2)
+contour = ax2.pcolor(t2, x2, U2,cmap="hot")
 cbar = fig.colorbar(contour)
 
 # Add labels to stuff!
