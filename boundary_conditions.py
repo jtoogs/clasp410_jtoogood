@@ -3,6 +3,7 @@
 '''
 Workspace for completing the homework titled "Neumann vs. Dirichlet"
 Built around code from Dan's Github file "lab04_diffuse.py"
+Includes lecture notes from 10.16 onwards
 '''
 
 import numpy as np
@@ -12,7 +13,7 @@ plt.style.use('fivethirtyeight')
 plt.ion()
 
 
-def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
+def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True, fx=None, lowerbound=None, upperbound=None):
     '''
     A function for solving the heat equation
 
@@ -31,6 +32,10 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
     use_Neumann : boolean, default is True
         Toggles between Neumann (T) and Dirchlet (F) boundary conditions 
         Neumann boundary conditions use dU/dx=0 in this case 
+    fx : function, defaults to None 
+        determines initial conditions 
+    lowerbound, upperbound : float, defaults to None 
+        determines boundary conditions 
 
     Returns
     -------
@@ -49,12 +54,19 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
 
     # Create solution matrix; set initial conditions
     U = np.zeros([M, N])
-    U[:, 0] = 4*x - 4*x**2                                        
+    U[:, 0] = fx
+    U[:, 0] = 4*x - 4*x**2   #hardcoded override for hw 
 
     if use_Neumann == True: 
         print("Using Neumann")
     else:
         print("Using Dirichlet")
+
+    # Dan: determine boundary conditions from boolean arg
+    if lowerbound is not None:
+        U[0,:] = lowerbound
+    if upperbound is not None: 
+        U[-1,:] = upperbound
 
     # Get our "r" coeff:
     r = c2 * (dt/dx**2)
@@ -63,8 +75,10 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, use_Neumann=True):
     for j in range(N-1):
         U[1:M-1, j+1] = (1-2*r) * U[1:M-1, j] + r*(U[2:M, j] + U[:M-2, j])
         if use_Neumann == True: 
-            U[0,j+1] = U[1,j+1]                                               # HERES THE LINE 
-            U[-1,j+1] = U[-2,j+1]
+            if lowerbound is None: 
+                U[0,j+1] = U[1,j+1]   
+            if upperbound is None:                                             # HERES THE LINE 
+                U[-1,j+1] = U[-2,j+1]
 
     # Return our pretty solution to the caller:
     return t, x, U
