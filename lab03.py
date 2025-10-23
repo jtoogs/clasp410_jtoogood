@@ -42,6 +42,32 @@ def validation_initial(x):
     temp = 4*x - 4*x**2
     return temp
 
+def temp_kanger(t):
+    '''
+    For an array of times in days, return timeseries of temperature for
+    Kangerlussuaq, Greenland.
+    '''
+    t_amp = (t_kanger - t_kanger.mean()).max()
+
+    return t_amp*np.sin(np.pi/180 * t - np.pi/2) + t_kanger.mean()
+
+def zeros_initial(x):
+    '''
+    Function defining uniform 0 degrees C initial conditions for solve_heat
+
+    Parameters
+    ---------
+    x : numpy array
+        Array of positions at which to define the starting temperature values
+    
+    Returns
+    ---------
+    temp : numpy array
+        Array of starting temperature values corresponding to U[:,0]
+    '''
+    temp = np.zeros(np.size(x))
+    return temp
+
 def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowerbound=None, upperbound=None, suppressoutput=False):
     '''
     A function for solving the heat equation
@@ -62,7 +88,7 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
         determines initial conditions                                               #SOMETHING BWOKEN 
         Must accept an array of positions and return temperature at those
         positions as an equally sized array.
-    lowerbound, upperbound : float, defaults to None 
+    lowerbound, upperbound : float or function, defaults to None 
         determines boundary conditions 
         Neumann boundary conditions use dU/dx=0 in this case 
     suppressoutput : boolean, defaults to False
@@ -121,27 +147,18 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
         if lowerbound is None: 
             U[0,j+1] = U[1,j+1] 
         elif callable(lowerbound):
-            U[0,:] = lowerbound(t[j+1])
+            U[0,j+1] = lowerbound(t[j+1])
         else: 
             U[0,:] = lowerbound
         if upperbound is None: 
             U[-1,j+1] = U[-2,j+1]
         elif callable(upperbound): 
-            U[-1,:] = upperbound(t[j+1])
+            U[-1,j+1] = upperbound(t[j+1])
         else:
             U[-1,:] = upperbound
 
     # Return our pretty solution to the caller:
     return t, x, U
-
-def temp_kanger(t):
-    '''
-    For an array of times in days, return timeseries of temperature for
-    Kangerlussuaq, Greenland.
-    '''
-    t_amp = (t_kanger - t_kanger.mean()).max()
-
-    return t_amp*np.sin(np.pi/180 * t - np.pi/2) + t_kanger.mean()
 
 def question_1():
     '''
@@ -156,11 +173,16 @@ def question_1():
                                upperbound=0, lowerbound=0, suppressoutput=True)
 
     # Create a figure/axes object
-    fig, axes = plt.subplots(1, 1)
+    fig, ax = plt.subplots(1, 1)
 
     # Create a color map and add a color bar.
-    map = axes.pcolor(time, x, heat, cmap='hot') #, vmin=-25, vmax=25
-    plt.colorbar(map, ax=axes, label='Temperature ($C$)')
+    map = ax.pcolor(time, x, heat, cmap='hot') #, vmin=-25, vmax=25)
+    plt.colorbar(map, ax=ax, label='Temperature ($C$)')
+
+    # label axes, add title 
+    ax.set_xlabel('Time $(seconds)$')
+    ax.set_ylabel('Position $(meters)$')
+    ax.set_title(f'Validation of Diffusion Equation Solver')
 
     print(heat)
 
@@ -172,15 +194,30 @@ def question_2():
 
     Returns: none
     '''
+    time,x,heat = solve_heat(xstop=100, tstop=5*365.25, dx=1, dt=1/24, c2=((np.sqrt(0.25))/(1000)*(3600*24))**2, initial=zeros_initial, 
+                          lowerbound=5, upperbound=temp_kanger, suppressoutput=False)
+        
+    # Create a figure/axes object
+    fig, ax = plt.subplots(1, 1)
+
+    # Create a color map and add a color bar.
+    map = ax.pcolor(time, x, heat, cmap='hot',vmin=-25, vmax=25)
+    plt.colorbar(map, ax=ax, label='Temperature ($C$)')
+
+    # label axes, add title 
+    ax.set_xlabel('Time $(days)$')
+    ax.set_ylabel('Position $(meters)$')
+    ax.set_title(f'Permafrost Simulation for Kangerlussuaq, Greenland')
+
     # Set indexing for the final year of results:
-    loc = int(-365/dt) # Final 365 days of the result.
+    #loc = int(-365/dt) # Final 365 days of the result.
 
     # Extract the min values over the final year:
-    winter = heat[:, loc:].min(axis=1)
+    #winter = heat[:, loc:].min(axis=1)
 
     # Create a temp profile plot:
-    fig, ax2 = plt.subplots(1, 1, figsize=(10, 8))
-    ax2.plot(winter, x, label='Winter')
+    #fig, ax2 = plt.subplots(1, 1, figsize=(10, 8))
+    #ax2.plot(winter, x, label='Winter')
 
 def question_3():
     '''
@@ -193,10 +230,10 @@ def question_3():
 
 
 print('Question 1:')
-question_1()
+#question_1()
 
 print('Question 2:')
-#question_2()
+question_2()
 
 print('Question 3:')
 #question_3()
