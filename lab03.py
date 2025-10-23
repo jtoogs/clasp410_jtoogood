@@ -17,18 +17,32 @@ Running this script will also call these functions in order.
 # import packages 
 import numpy as np 
 import matplotlib.pyplot as plt
-from tabulate import tabulate #remove for submission
 
 # turn on interactive plotting, set stylesheet
 plt.ion()
 plt.style.use('seaborn-v0_8-poster')
 
-#####
-
 # define global variables
 t_kanger = np.array([-19.7, -21.0, -17., -8.4, 2.3, 8.4, 10.7, 8.5, 3.1, -6.0, -12.0, -16.9]) # Kangerlussuaq average temperature
 
-def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowerbound=None, upperbound=None):
+def validation_initial(x):
+    '''
+    Function defining the initial conditions for validating solve_heat
+
+    Parameters
+    ---------
+    x : numpy array
+        Array of positions at which to define the starting temperature values
+    
+    Returns
+    ---------
+    temp : numpy array
+        Array of starting temperature values corresponding to U[:,0]
+    '''
+    temp = 4*x - 4*x**2
+    return temp
+
+def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowerbound=None, upperbound=None, suppressoutput=False):
     '''
     A function for solving the heat equation
 
@@ -45,12 +59,14 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
     c2 : float
         c^2, the square of the diffusion coefficient.        
     initial : function, defaults to None 
-        determines initial conditions #SOMETHING BWOKEN 
+        determines initial conditions                                               #SOMETHING BWOKEN 
         Must accept an array of positions and return temperature at those
         positions as an equally sized array.
     lowerbound, upperbound : float, defaults to None 
         determines boundary conditions 
         Neumann boundary conditions use dU/dx=0 in this case 
+    suppressoutput : boolean, defaults to False
+        determines whether to announce boundary condition type
 
     Returns
     -------
@@ -79,25 +95,25 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
 
     # Create solution matrix; set initial conditions
     U = np.zeros([M, N])
-    # U[:, 0] = initial
-    U[:, 0] = 4*x - 4*x**2   #hardcoded override for hw       
+    U[:, 0] = initial(x)
 
     # Get our "r" coeff:
     r = c2 * (dt/dx**2)
 
     # announce boundary condition type
-    if lowerbound is None: 
-        print("Using Neumann (lower)")
-    elif callable(lowerbound):
-        print("Using Dirichlet (lower bound changes)")
-    else: 
-        print("Using Dirichlet (lower bound constant)")
-    if upperbound is None: 
-        print("Using Neumann (upper)")
-    elif callable(upperbound): 
-        print("Using Dirichlet (upper bound changes)")
-    else:
-        print("Using Dirichlet (upper bound constant)")
+    if suppressoutput is not True:
+        if lowerbound is None: 
+            print("Using Neumann (lower)")
+        elif callable(lowerbound):
+            print("Using Dirichlet (lower bound changes)")
+        else: 
+            print("Using Dirichlet (lower bound constant)")
+        if upperbound is None: 
+            print("Using Neumann (upper)")
+        elif callable(upperbound): 
+            print("Using Dirichlet (upper bound changes)")
+        else:
+            print("Using Dirichlet (upper bound constant)")
 
     # Solve our equation!
     for j in range(N-1):
@@ -136,7 +152,8 @@ def question_1():
     Returns: none
     '''
     # Get solution using your solver:
-    time, x, heat = solve_heat(xstop=1., tstop=0.2, dx=0.2, dt=0.02, c2=1, initial=None, upperbound=0,lowerbound=0)
+    time, x, heat = solve_heat(xstop=1., tstop=0.2, dx=0.2, dt=0.02, c2=1, initial=validation_initial, 
+                               upperbound=0, lowerbound=0, suppressoutput=True)
 
     # Create a figure/axes object
     fig, axes = plt.subplots(1, 1)
@@ -145,7 +162,7 @@ def question_1():
     map = axes.pcolor(time, x, heat, cmap='hot') #, vmin=-25, vmax=25
     plt.colorbar(map, ax=axes, label='Temperature ($C$)')
 
-    print(tabulate(heat))
+    print(heat)
 
 def question_2():
     '''
