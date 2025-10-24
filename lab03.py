@@ -42,14 +42,28 @@ def validation_initial(x):
     temp = 4*x - 4*x**2
     return temp
 
-def temp_kanger(t):
+def temp_kanger(t,warming=0):
     '''
-    For an array of times in days, return timeseries of temperature for
+    For an array of times in YEARS, return timeseries of temperature for
     Kangerlussuaq, Greenland.
+
+    Parameters
+    ----------
+    t : numpy array
+        Array of times in years 
+    warming : float, defaults to 0
+        Uniform temperature shift (degrees C)
+    
+    Returns
+    ----------
+    temp : numpy array
+        Array of temperature values corresponding to each time in t
     '''
     t_amp = (t_kanger - t_kanger.mean()).max()
 
-    return t_amp*np.sin(np.pi/180 * t - np.pi/2) + t_kanger.mean()
+    temp = t_amp*np.sin(np.pi/180 * (t*365.25) - np.pi/2) + t_kanger.mean() + warming
+
+    return temp
 
 def zeros_initial(x):
     '''
@@ -68,7 +82,7 @@ def zeros_initial(x):
     temp = np.zeros(np.size(x))
     return temp
 
-def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowerbound=None, upperbound=None, suppressoutput=False):
+def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowerbound=None, upperbound=None, warming=0, suppressoutput=False):
     '''
     A function for solving the heat equation
 
@@ -85,12 +99,14 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
     c2 : float
         c^2, the square of the diffusion coefficient.        
     initial : function, defaults to None 
-        determines initial conditions                                               #SOMETHING BWOKEN 
+        determines initial conditions 
         Must accept an array of positions and return temperature at those
         positions as an equally sized array.
     lowerbound, upperbound : float or function, defaults to None 
         determines boundary conditions 
         Neumann boundary conditions use dU/dx=0 in this case 
+    warming : float, defaults to 0
+        Uniform temperature shift (degrees C) to pass to temp_kanger
     suppressoutput : boolean, defaults to False
         determines whether to announce boundary condition type
 
@@ -147,13 +163,13 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
         if lowerbound is None: 
             U[0,j+1] = U[1,j+1] 
         elif callable(lowerbound):
-            U[0,j+1] = lowerbound(t[j+1])
+            U[0,j+1] = lowerbound(t[j+1],warming)
         else: 
             U[0,:] = lowerbound
         if upperbound is None: 
             U[-1,j+1] = U[-2,j+1]
         elif callable(upperbound): 
-            U[-1,j+1] = upperbound(t[j+1])
+            U[-1,j+1] = upperbound(t[j+1],warming)
         else:
             U[-1,:] = upperbound
 
@@ -194,30 +210,47 @@ def question_2():
 
     Returns: none
     '''
-    time,x,heat = solve_heat(xstop=100, tstop=5*365.25, dx=1, dt=1/24, c2=((np.sqrt(0.25))/(1000)*(3600*24))**2, initial=zeros_initial, 
-                          lowerbound=5, upperbound=temp_kanger, suppressoutput=False)
+    dt = 5/365 # timestep in years
+
+    time,x,heat = solve_heat(xstop=100., tstop=75, dx=1, dt=dt, c2=0.25/1000/1000*60*60*24*365, initial=zeros_initial, 
+                          lowerbound=temp_kanger, upperbound=5, suppressoutput=True)
         
     # Create a figure/axes object
-    fig, ax = plt.subplots(1, 1)
+    fig, [ax1, ax2] = plt.subplots(1, 2, figsize=[20,8])
 
     # Create a color map and add a color bar.
-    map = ax.pcolor(time, x, heat, cmap='hot',vmin=-25, vmax=25)
-    plt.colorbar(map, ax=ax, label='Temperature ($C$)')
+    map = ax1.pcolor(time, x, heat, cmap='seismic',vmin=-25, vmax=25)
+    plt.colorbar(map, ax=ax1, label='Temperature ($^{o}C$)')
 
     # label axes, add title 
-    ax.set_xlabel('Time $(days)$')
-    ax.set_ylabel('Position $(meters)$')
-    ax.set_title(f'Permafrost Simulation for Kangerlussuaq, Greenland')
+    ax1.invert_yaxis() 
+    ax1.set_xlabel('Time $(years)$')
+    ax1.set_ylabel('Depth $(meters)$')
+    ax1.set_title(f'Permafrost Simulation for Kangerlussuaq, Greenland')
+
 
     # Set indexing for the final year of results:
-    #loc = int(-365/dt) # Final 365 days of the result.
+    loc = int(-1/dt) # Final 365 days of the result.
 
-    # Extract the min values over the final year:
-    #winter = heat[:, loc:].min(axis=1)
+    # Extract the extreme values over the final year:
+    winter = heat[:, loc:].min(axis=1)
+    summer = heat[:, loc:].max(axis=1)
 
     # Create a temp profile plot:
-    #fig, ax2 = plt.subplots(1, 1, figsize=(10, 8))
-    #ax2.plot(winter, x, label='Winter')
+    ax2.plot(winter, x, 'b-', label='Winter')
+    ax2.plot(summer, x, 'r--', label='Summer')
+
+    # label axes, add title
+    ax2.set_xlim([-8,6])
+    ax2.set_ylim([-5,75])
+    ax2.invert_yaxis()
+    ax2.grid(True)
+    ax2.set_xlabel('Temperature $(^{o}C)$')
+    ax2.set_ylabel('Depth $(meters)$')
+    ax2.set_title(f'Seasonal Temperature Profile for Kangerlussuaq, Greenland')
+    ax2.legend(loc='lower left')
+
+    fig.suptitle("No Warming",fontsize=30)
 
 def question_3():
     '''
@@ -227,16 +260,54 @@ def question_3():
 
     Returns: none
     ''' 
+    for i in [0.5, 1, 3]: 
 
+        dt = 5/365 # timestep in years
+
+        time,x,heat = solve_heat(xstop=100., tstop=75, dx=1, dt=dt, c2=0.25/1000/1000*60*60*24*365, initial=zeros_initial, 
+                            lowerbound=temp_kanger, upperbound=5, warming=i, suppressoutput=True)
+            
+        # Create a figure/axes object
+        fig, [ax1,ax2] = plt.subplots(1, 2, figsize = [20,8])
+
+        # Create a color map and add a color bar.
+        map = ax1.pcolor(time, x, heat, cmap='seismic',vmin=-25, vmax=25)
+        plt.colorbar(map, ax=ax1, label='Temperature ($^{o}C$)')
+
+        # label axes, add title 
+        ax1.invert_yaxis() 
+        ax1.set_xlabel('Time $(years)$')
+        ax1.set_ylabel('Depth $(meters)$')
+        ax1.set_title(f'Permafrost Simulation for Kangerlussuaq, Greenland')
+
+        # Set indexing for the final year of results:
+        loc = int(-1/dt) # Final 365 days of the result.
+
+        # Extract the extreme values over the final year:
+        winter = heat[:, loc:].min(axis=1)
+        summer = heat[:, loc:].max(axis=1)
+
+        # Create a temp profile plot:
+        ax2.plot(winter, x, 'b-', label='Winter')
+        ax2.plot(summer, x, 'r--', label='Summer')
+
+        # label axes, add title
+        ax2.set_xlim([-8,6])
+        ax2.set_ylim([-5,75])
+        ax2.invert_yaxis()
+        ax2.grid(True)
+        ax2.set_xlabel('Temperature $(^{o}C)$')
+        ax2.set_ylabel('Depth $(meters)$')
+        ax2.set_title(f'Seasonal Temperature Profile for Kangerlussuaq, Greenland')
+        ax2.legend(loc='lower left')
+
+        fig.suptitle(f"Warming Scenario: +{i}$^{{o}}C$",fontsize=30)
 
 print('Question 1:')
-#question_1()
+question_1()
 
 print('Question 2:')
 question_2()
 
 print('Question 3:')
-#question_3()
-
-
-
+question_3()
