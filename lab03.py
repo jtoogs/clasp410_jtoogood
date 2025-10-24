@@ -17,6 +17,7 @@ Running this script will also call these functions in order.
 # import packages 
 import numpy as np 
 import matplotlib.pyplot as plt
+# from tabulate import tabulate #uncomment for table 1b formatting
 
 # turn on interactive plotting, set stylesheet
 plt.ion()
@@ -176,11 +177,14 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
     # Return our pretty solution to the caller:
     return t, x, U
 
-def question_1():
+def question_1(plot=False):
     '''
     Run this code to reproduce all results for question 1.
 
-    Parameters: none
+    Parameters
+    ---------
+    plot : boolean, defaults to False   
+        Determines whether to plot the heat equation solution (for debugging)
 
     Returns: none
     '''
@@ -188,18 +192,21 @@ def question_1():
     time, x, heat = solve_heat(xstop=1., tstop=0.2, dx=0.2, dt=0.02, c2=1, initial=validation_initial, 
                                upperbound=0, lowerbound=0, suppressoutput=True)
 
-    # Create a figure/axes object
-    fig, ax = plt.subplots(1, 1)
+    if plot: 
+        # Create a figure/axes object
+        fig, ax = plt.subplots(1, 1)
 
-    # Create a color map and add a color bar.
-    map = ax.pcolor(time, x, heat, cmap='hot') #, vmin=-25, vmax=25)
-    plt.colorbar(map, ax=ax, label='Temperature ($C$)')
+        # Create a color map and add a color bar.
+        map = ax.pcolor(time, x, heat, cmap='hot') #, vmin=-25, vmax=25)
+        plt.colorbar(map, ax=ax, label='Temperature ($C$)')
 
-    # label axes, add title 
-    ax.set_xlabel('Time $(seconds)$')
-    ax.set_ylabel('Position $(meters)$')
-    ax.set_title(f'Validation of Diffusion Equation Solver')
+        # label axes, add title 
+        ax.set_xlabel('Time $(seconds)$')
+        ax.set_ylabel('Position $(meters)$')
+        ax.set_title(f'Validation of Diffusion Equation Solver')
 
+    print("Heat Equation Solution for Validation: ")
+    # print(tabulate(heat)) #uncomment for table 1b
     print(heat)
 
 def question_2():
@@ -252,6 +259,10 @@ def question_2():
 
     fig.suptitle("No Warming",fontsize=30)
 
+    print("With an initial condition of 0 ℃, we find that a steady state is reached after roughly 70 years of the model running. " \
+    "At 75 years, we find by inspecting our plot that the active layer reaches from the surface to a depth of 2 meters, " \
+    "while the permafrost layer reaches from the bottom of the active layer to a depth of 51 meters.")
+
 def question_3():
     '''
     Run this code to reproduce all results for question 3.
@@ -303,11 +314,16 @@ def question_3():
 
         fig.suptitle(f"Warming Scenario: +{i}$^{{o}}C$",fontsize=30)
 
+    print("The permafrost layer depth decreases for each increase in temperature, from 51 m with no warming " \
+    "to 50, 49, and 45 m for 0.5, 1, and 3 degrees Celsius, respectively. The active layer depth increases "
+    "for each increase in temperature, but much less significantly at 3 ℃ of warming, the active layer " \
+    "depth reaches roughly 4 m. ")
+
 print('Question 1:')
 question_1()
 
 print('Question 2:')
 question_2()
-
-print('Question 3:')
+ 
+print('Question 3:') 
 question_3()
