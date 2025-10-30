@@ -177,33 +177,19 @@ def solve_heat(xstop=1., tstop=0.2, dx=0.02, dt=0.0002, c2=1, initial=None, lowe
     # Return our pretty solution to the caller:
     return t, x, U
 
-def question_1(plot=False):
+def question_1():
     '''
     Run this code to reproduce all results for question 1.
 
     Parameters
     ---------
-    plot : boolean, defaults to False   
-        Determines whether to plot the heat equation solution (for debugging)
+    Parameters: none
 
     Returns: none
     '''
     # Get solution using your solver:
     time, x, heat = solve_heat(xstop=1., tstop=0.2, dx=0.2, dt=0.02, c2=1, initial=validation_initial, 
                                upperbound=0, lowerbound=0, suppressoutput=True)
-
-    if plot: 
-        # Create a figure/axes object
-        fig, ax = plt.subplots(1, 1)
-
-        # Create a color map and add a color bar.
-        map = ax.pcolor(time, x, heat, cmap='hot') #, vmin=-25, vmax=25)
-        plt.colorbar(map, ax=ax, label='Temperature ($C$)')
-
-        # label axes, add title 
-        ax.set_xlabel('Time $(seconds)$')
-        ax.set_ylabel('Position $(meters)$')
-        ax.set_title(f'Validation of Diffusion Equation Solver')
 
     print("Heat Equation Solution for Validation: ")
     # print(tabulate(heat)) #uncomment for table 1b
@@ -219,7 +205,8 @@ def question_2():
     '''
     dt = 5/365 # timestep in years
 
-    time,x,heat = solve_heat(xstop=100., tstop=75, dx=1, dt=dt, c2=0.25/1000/1000*60*60*24*365, initial=zeros_initial, 
+    # c2 calculation used in solve_heat: 0.25/1000/1000*60*60*24*365 = 7.884
+    time,x,heat = solve_heat(xstop=100., tstop=75, dx=1, dt=dt, c2=7.884, initial=zeros_initial, 
                           lowerbound=temp_kanger, upperbound=5, suppressoutput=True)
         
     # Create a figure/axes object
@@ -275,7 +262,8 @@ def question_3():
 
         dt = 5/365 # timestep in years
 
-        time,x,heat = solve_heat(xstop=100., tstop=75, dx=1, dt=dt, c2=0.25/1000/1000*60*60*24*365, initial=zeros_initial, 
+        # c2 calculation used in solve_heat: 0.25/1000/1000*60*60*24*365 = 7.884
+        time,x,heat = solve_heat(xstop=100., tstop=75, dx=1, dt=dt, c2=7.884, initial=zeros_initial, 
                             lowerbound=temp_kanger, upperbound=5, warming=i, suppressoutput=True)
             
         # Create a figure/axes object
