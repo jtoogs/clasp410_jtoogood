@@ -21,12 +21,14 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0):
     Returns
     ----------
 
+    Comments
+    1=bare, 2=untouched 3=fire
+
     '''
 
     # Creating a forest and making all spots have trees.
     forest = np.zeros((nstep, isize, jsize)) + 2 #note odd indexing order in 3+ dimensions: [k,i,j]
 
-    # 1=bare, 2=untouched 3=fire
     # Set initial fire 
     forest[0,isize//2,jsize//2] = 3 #hardcoded, bad - update for lab
 
@@ -47,24 +49,38 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0):
                     print(f"FUCK theres a fire at {[i,j]}")
                     if n+1<nstep:
                         forest[n+1,i,j] = 1
-                    prob = np.random.rand()
-                    if pspread>prob and n+1<nstep: #determine likelihood of spread
-                        if i+1<isize and j+1<jsize and i+1==2 and j+1==2:
+                    if pspread>np.random.rand() and n+1<nstep: #determine likelihood of spread
+                        if i+1<isize and i+1==2:
                             forest[n+1,i+1,j] = 3 
-                        if i+1<isize and j+1<jsize and i+1==2 and j+1==2:
+                        if i-1>=0 and i-1==2:                    #not sure why its only spreading to +index still
                             forest[n+1,i-1,j] = 3 
-                        if i+1<isize and j+1<jsize and i+1==2 and j+1==2:
+                        if j+1<jsize and j+1==2:
                             forest[n+1,i,j+1] = 3 
-                        if i+1<isize and j+1<jsize and i+1==2 and j+1==2:
+                        if j-1>=0 and j-1==2:
                             forest[n+1,i,j-1] = 3 
-    
+
+    return forest 
+
+def plot_forest(forest,nstep):
+    '''
+    Plot the last time step of the forest fire model.
+    '''
     plt.close()
     fig, ax = plt.subplots(1, 1, figsize=(8, 6))
-    contour = ax.pcolor(range(isize),range(jsize),forest[nstep-1,:,:])
+    contour = ax.pcolor(forest[nstep-1,:,:],cmap='Spectral_r',vmin=1,vmax=3)
     cbar = plt.colorbar(contour)
     plt.show()
 
-    return forest 
+
+isize = 3
+jsize = 3
+nstep = 4
+pspread = 1.0
+
+forest = forest_fire(isize,jsize,nstep,pspread)
+
+plot_forest(forest,isize,jsize,nstep)
+
 
 
 # discussion of monte carlo simulation
