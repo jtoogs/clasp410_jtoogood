@@ -28,7 +28,7 @@ plt.style.use('seaborn-v0_8-poster')
 # We can specify colors by names and then create a colormap that only uses
 # those names. We have 3 funadmental states, so we want only 3 colors.
 # Color info: https://matplotlib.org/stable/gallery/color/named_colors.html
-forest_cmap = ListedColormap(['tan', 'darkgreen', 'crimson'])
+forest_cmap = ListedColormap(['tan', 'forestgreen', 'crimson'])
 
 # declare global variables 
 nx, ny = 3, 3 # Number of cells in X and Y direction.
@@ -104,16 +104,7 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
                 forest[k+1, i, j] = 1
 
     return forest
-
-def plot_forest(forest):
-    # Create figure and set of axes:
-    fig, ax = plt.subplots(1,1, figsize=(8, 6))
-
-    # Given our "forest" object, a 2D array that contains numbers 1, 2, or 3,
-    # Plot this using the "pcolor" method. Be sure to use our color map and
-    # set both *vmin* and *vmax*:
-    ax.pcolor(forest, cmap=forest_cmap, vmin=1, vmax=3)
-
+    
 def plot_progression(forest):
     '''Calculate the time dynamics of a forest fire and plot them.'''
 
@@ -134,6 +125,58 @@ def plot_progression(forest):
     plt.xlabel('Time (arbitrary units)')
     plt.ylabel('Percent Total Forest')
 
+def plot_forest2d(forest_in, itime=0):
+    '''
+    Given a forest of size (ntime, nx, ny), plot the itime-th moment as a
+    2d pcolor plot.
+    '''
+
+    # Create figure and axes
+    fig, ax = plt.subplots(1, 1, figsize=(7, 7))
+    fig.subplots_adjust(left=.117, right=.974, top=.929, bottom=0.03)
+
+    # Add our pcolor plot, save the resulting mappable object.
+    map = ax.pcolor(forest_in[itime, :, :], vmin=1, vmax=3, cmap=forest_cmap)
+
+    # Add a colorbar by handing our mappable to the colorbar function.
+    cbar = plt.colorbar(map, ax=ax, shrink=.8, fraction=.08,
+                        location='bottom', orientation='horizontal')
+    cbar.set_ticks([1, 2, 3])
+    cbar.set_ticklabels(['Bare/Burnt', 'Forested', 'Burning'])
+
+    # Flip y-axis (corresponding to the matrix's X direction)
+    # And label stuff.
+    ax.invert_yaxis()
+    ax.set_xlabel('Eastward ($km$) $\\longrightarrow$')
+    ax.set_ylabel('Northward ($km$) $\\longrightarrow$')
+    ax.set_title(f'Forest at T={itime:03d}')
+
+    # make sure stuff is spaced well 
+    fig.tight_layout
+
+    # Return figure object to caller:
+    return fig, ax
+
+
+def make_all_2dplots(forest_in, folder='results/'):
+    '''
+    For every time frame in `forest_in`, create a 2D plot and save the image
+    in folder.
+    '''
+
+    import os
+
+    # Check to see if folder exists, if not, make it!
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
+    # Make a buncha plots.
+    ntime, nx, ny = forest_in.shape
+    for i in range(ntime):
+        print(f"\tWorking on plot #{i:04d}")
+        fig = plot_forest2d(forest_in, itime=i)
+        fig.savefig(f"{folder}/forest_i{i:04d}.png")
+        plt.close('all')
 
 def question_1():
     '''
@@ -143,12 +186,13 @@ def question_1():
 
     Returns: none
     '''
-    forest1 = forest_fire(isize=3, jsize=3, nstep=3, pspread=1.0, pignite=0.0, pbare=0) #STILL NEED TO IMPLEMENT SPREAD IN 3 DIRECTIONS WITH EDGE CONDITIONS 
-    plot_forest(forest1[2,:,:])
-
-    forest2 = forest_fire(isize=3, jsize=7, nstep=3, pspread=1.0, pignite=0.0, pbare=0)
-    plot_forest(forest2[2,:,:])
-
+    
+    forest1 = forest_fire(isize=3, jsize=3, nstep=3, pspread=1.0, pignite=0.0, pbare=0)
+    for i in range(forest1.shape[0]):
+        plot_forest2d(forest1,i)
+    forest2 = forest_fire(isize=3, jsize=9, nstep=3, pspread=1.0, pignite=0.0, pbare=0)
+    for i in range(forest2.shape[0]):
+        plot_forest2d(forest2,i)
 
 
 def question_2():
@@ -170,6 +214,7 @@ def question_3():
     '''
 
 
+plt.close('all')
 
 print('Question 1:')
 question_1()
