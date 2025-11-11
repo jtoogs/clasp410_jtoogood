@@ -91,8 +91,14 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
                 if (pspread > rand()) and (i > 0) and (forest[k, i-1, j] == 2):
                     forest[k+1, i-1, j] = 3
                 # Spread "Down"
+                if (pspread > rand()) and (i+1 < isize) and (forest[k, i+1, j] == 2):
+                    forest[k+1, i+1, j] = 3
                 # Spread "East"
+                if (pspread > rand()) and (j > 0) and (forest[k, i, j-1] == 2):
+                    forest[k+1, i, j-1] = 3
                 # Spread "West"
+                if (pspread > rand()) and (j+1 < jsize) and (forest[k, i, j+1] == 2):
+                    forest[k+1, i, j+1] = 3
 
                 # Change buring to burnt:
                 forest[k+1, i, j] = 1
