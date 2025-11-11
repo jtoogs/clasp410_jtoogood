@@ -24,56 +24,17 @@ from matplotlib.colors import ListedColormap
 plt.ion()
 plt.style.use('seaborn-v0_8-poster')
 
-# declare global variables 
-nx, ny = 3, 3 # Number of cells in X and Y direction.
-prob_spread = 1.0 # Chance to spread to adjacent cells.
-prob_bare = 0.0 # Chance of cell to start as bare patch.
-prob_start = 0.0 # Chance of cell to start on fire.
-
-# Create an initial grid, set all values to "2". dtype sets the value
-# type in our array to integers only.
-forest = np.zeros([ny, nx], dtype=int) + 2
-# Set the center cell to "burning":
-forest[1, 1] = 3
-
-# Loop over every cell in the x and y directions.
-for i in range(nx):
-    for j in range(ny):
-        # Roll our "dice" to see if we get a bare spot:
-        if np.random.rand() < prob_bare:
-            forest[j, i] = 1 # 1 is a bare spot.
-
-# Create an array of randomly generated numbers of range [0, 1):
-isbare = np.random.rand(ny, nx)
-# Turn it into an array of True/False values:
-isbare = isbare < prob_bare
-# We can use this array of booleans to reference any existing array
-# and change only the values corresponding to True:
-forest[isbare] = 1
-
-# Loop in the "x" direction:
-for i in range(nx):
-    # Loop in the "y" direction:
-    for j in range(ny):
-        ## Perform logic here:
-        # forest[j, i] = #BE CAREFUL W EDGES 
-        True
-
-
 # Generate our custom segmented color map for this project.
 # We can specify colors by names and then create a colormap that only uses
 # those names. We have 3 funadmental states, so we want only 3 colors.
 # Color info: https://matplotlib.org/stable/gallery/color/named_colors.html
 forest_cmap = ListedColormap(['tan', 'darkgreen', 'crimson'])
-# Create figure and set of axes:
-fig, ax = plt.subplots(1,1)
 
-# Given our "forest" object, a 2D array that contains numbers 1, 2, or 3,
-# Plot this using the "pcolor" method. Be sure to use our color map and
-# set both *vmin* and *vmax*:
-ax.pcolor(forest, cmap=forest_cmap, vmin=1, vmax=3)
-
-
+# declare global variables 
+nx, ny = 3, 3 # Number of cells in X and Y direction.
+prob_spread = 1.0 # Chance to spread to adjacent cells.
+prob_bare = 0.0 # Chance of cell to start as bare patch.
+prob_start = 0.0 # Chance of cell to start on fire.
 
 def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
     '''
@@ -97,7 +58,7 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
     '''
 
     # Creating a forest and making all spots have trees.
-    forest = np.zeros((nstep, isize, jsize)) + 2
+    forest = np.zeros((nstep, isize, jsize), dtype=int) + 2
 
     # Set initial conditions for BURNING/INFECTED and BARE/IMMUNE
     # Start with BURNING/INFECTED:
@@ -138,6 +99,15 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
 
     return forest
 
+def plot_forest(forest):
+    # Create figure and set of axes:
+    fig, ax = plt.subplots(1,1, figsize=(8, 6))
+
+    # Given our "forest" object, a 2D array that contains numbers 1, 2, or 3,
+    # Plot this using the "pcolor" method. Be sure to use our color map and
+    # set both *vmin* and *vmax*:
+    ax.pcolor(forest, cmap=forest_cmap, vmin=1, vmax=3)
+
 def plot_progression(forest):
     '''Calculate the time dynamics of a forest fire and plot them.'''
 
@@ -167,6 +137,13 @@ def question_1():
 
     Returns: none
     '''
+    forest1 = forest_fire(isize=3, jsize=3, nstep=3, pspread=1.0, pignite=0.0, pbare=0) #STILL NEED TO IMPLEMENT SPREAD IN 3 DIRECTIONS WITH EDGE CONDITIONS 
+    plot_forest(forest1[2,:,:])
+
+    forest2 = forest_fire(isize=3, jsize=7, nstep=3, pspread=1.0, pignite=0.0, pbare=0)
+    plot_forest(forest2[2,:,:])
+
+
 
 def question_2():
     '''
