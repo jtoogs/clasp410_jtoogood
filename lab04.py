@@ -19,22 +19,15 @@ import numpy as np
 from numpy.random import rand
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
+import os
 
 # turn on interactive plotting, set stylesheet
 plt.ion()
 plt.style.use('seaborn-v0_8-poster')
 
 # Generate our custom segmented color map for this project.
-# We can specify colors by names and then create a colormap that only uses
-# those names. We have 3 funadmental states, so we want only 3 colors.
 # Color info: https://matplotlib.org/stable/gallery/color/named_colors.html
 forest_cmap = ListedColormap(['tan', 'forestgreen', 'crimson'])
-
-# declare global variables 
-nx, ny = 3, 3 # Number of cells in X and Y direction.
-prob_spread = 1.0 # Chance to spread to adjacent cells.
-prob_bare = 0.0 # Chance of cell to start as bare patch.
-prob_start = 0.0 # Chance of cell to start on fire.
 
 def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
     '''
@@ -66,7 +59,7 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
         loc_ignite = np.zeros((isize, jsize), dtype=bool)
         while loc_ignite.sum() == 0:
             loc_ignite = rand(isize, jsize) <= pignite
-        print(f"Starting with {loc_ignite.sum()} points on fire or infected.")
+        # print(f"Starting with {loc_ignite.sum()} points on fire or infected.")
         forest[0, loc_ignite] = 3
     else:
         # Set initial fire to center:
@@ -105,7 +98,7 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
 
     return forest
     
-def plot_progression(forest):
+def plot_progression(forest,ax,var,prob):
     '''Calculate the time dynamics of a forest fire and plot them.'''
 
     # Get total number of points:
@@ -120,10 +113,8 @@ def plot_progression(forest):
     loc = forest == 1
     bare = 100 * loc.sum(axis=(1, 2))/npoints
 
-    plt.plot(forested, label='Forested')
-    plt.plot(bare, label='Bare/Burnt')
-    plt.xlabel('Time (arbitrary units)')
-    plt.ylabel('Percent Total Forest')
+    ax.plot(forested, label=f'Forested, {var}={prob*100}%')
+    # ax.plot(bare, label=f'Bare/Burnt, {var}={prob*100}%')
 
 def plot_forest2d(forest_in, itime=0):
     '''
@@ -155,28 +146,33 @@ def plot_forest2d(forest_in, itime=0):
     fig.tight_layout
 
     # Return figure object to caller:
-    return fig, ax
+    return fig
 
-
-def make_all_2dplots(forest_in, folder='results/'):
+def make_all_2dplots(forest_in, modelno, Qno, folder="Lab04_results/"):
     '''
     For every time frame in `forest_in`, create a 2D plot and save the image
     in folder.
+    modelno : int
+        Tag for which model run is being plotted, to avoid overwriting files 
     '''
-
-    import os
 
     # Check to see if folder exists, if not, make it!
     if not os.path.exists(folder):
         os.mkdir(folder)
 
+    # navigate to folder containing plots 
+    os.chdir(folder)
+
     # Make a buncha plots.
     ntime, nx, ny = forest_in.shape
     for i in range(ntime):
-        print(f"\tWorking on plot #{i:04d}")
+        print(f"\tWorking on plot #{modelno}_{i:04d}")
         fig = plot_forest2d(forest_in, itime=i)
-        fig.savefig(f"{folder}/forest_i{i:04d}.png")
-        plt.close('all')
+        fig.savefig(f"forest_Q{Qno}_{modelno}_i{i:04d}.png")
+        plt.close()
+
+    # return to original directory 
+    os.chdir("..")
 
 def question_1():
     '''
@@ -188,12 +184,14 @@ def question_1():
     '''
     
     forest1 = forest_fire(isize=3, jsize=3, nstep=3, pspread=1.0, pignite=0.0, pbare=0)
-    for i in range(forest1.shape[0]):
-        plot_forest2d(forest1,i)
-    forest2 = forest_fire(isize=3, jsize=9, nstep=3, pspread=1.0, pignite=0.0, pbare=0)
-    for i in range(forest2.shape[0]):
-        plot_forest2d(forest2,i)
+    #for i in range(forest1.shape[0]):
+        #plot_forest2d(forest1,i)
+    make_all_2dplots(forest1,Qno=1,modelno=1)
 
+    forest2 = forest_fire(isize=3, jsize=9, nstep=3, pspread=1.0, pignite=0.0, pbare=0)
+    #for i in range(forest2.shape[0]):
+        #plot_forest2d(forest2,i)
+    make_all_2dplots(forest2,Qno=1,modelno=2)
 
 def question_2():
     '''
@@ -203,6 +201,35 @@ def question_2():
 
     Returns: none
     '''
+
+    # set possible probabilities 
+    testrange = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    # vary spreading probability and plot 
+    fig, ax = plt.subplots(1,1,figsize=(10,6))
+    for i in range(testrange.size):
+        forest = forest_fire(isize=10, jsize=10, nstep=10, pspread=testrange[i], pignite=0.1, pbare=0)
+        plot_progression(forest,ax,var="pspread",prob=testrange[i])
+        # make_all_2dplots(forest,Qno=2,modelno=i+1)
+    ax.set_ylim(0,101)
+    ax.set_xlabel('Time (minutes)')
+    ax.set_ylabel('Percent Total Forest')
+    ax.set_title('Forest Evolution Over Time')
+    ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
+    fig.tight_layout()
+    
+    # vary barren probability and plot 
+    fig, ax = plt.subplots(1,1,figsize=(10,6))
+    for i in range(testrange.size):
+        forest = forest_fire(isize=10, jsize=10, nstep=10, pspread=1.0, pignite=0.1, pbare=testrange[i])
+        plot_progression(forest,ax,var="pbare",prob=testrange[i])
+        # make_all_2dplots(forest,Qno=2,modelno=i+6)
+    ax.set_ylim(0,101)
+    ax.set_xlabel('Time (minutes)')
+    ax.set_ylabel('Percent Total Forest')
+    ax.set_title('Forest Evolution Over Time')
+    ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
+    fig.tight_layout()
 
 def question_3():
     '''
@@ -217,10 +244,10 @@ def question_3():
 plt.close('all')
 
 print('Question 1:')
-question_1()
+# question_1()
 
 print('Question 2:')
-question_2()
+# question_2()
  
 print('Question 3:') 
 question_3()
