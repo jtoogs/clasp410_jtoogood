@@ -48,6 +48,11 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
     pbare : float, defaults to 0.0
         Set the chance that a point starts the simulation on bare (or
         immune) from 0 to 1 (0% to 100%).
+    
+    Returns 
+    ---------
+    forest : Numpy array
+        Array with dimensions nstep x isize x jsize expressing forest evolution over time 
     '''
 
     # Creating a forest and making all spots have trees.
@@ -99,7 +104,22 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
     return forest
     
 def plot_progression(forest,ax,var,prob):
-    '''Calculate the time dynamics of a forest fire and plot them.'''
+    '''
+    Calculate the time dynamics of a forest fire and plot them.
+    
+    Parameters
+    ----------
+    forest : Numpy array
+        Array containing forest evolution over time, can be generated from function forest_fire.
+    ax : axes object 
+        Target set of axes to plot onto 
+    var : string 
+        Name of variable being changed
+    prob : float
+        Value of var (above)
+    
+    Returns: none 
+    '''
 
     # Get total number of points:
     ksize, isize, jsize = forest.shape
@@ -119,7 +139,19 @@ def plot_progression(forest,ax,var,prob):
 def plot_forest2d(forest_in, itime=0):
     '''
     Given a forest of size (ntime, nx, ny), plot the itime-th moment as a
-    2d pcolor plot.
+    2d pcolor plot. (Largely used for debugging)
+
+    Parameters
+    ----------
+    forest_in : Numpy array
+        Array containing forest evolution over time, can be generated from function forest_fire. 
+    itime : int, defaults to 0
+        Index for which time step to plot
+
+    Returns
+    ---------
+    fig : figure object
+        Figure containing plot of forest at specified time 
     '''
 
     # Create figure and axes
@@ -148,12 +180,21 @@ def plot_forest2d(forest_in, itime=0):
     # Return figure object to caller:
     return fig
 
-def make_all_2dplots(forest_in, modelno, Qno, folder="Lab04_results/"):
+def make_all_2dplots(forest_in, Qno, modelno, folder="Lab04_results/"):
     '''
     For every time frame in `forest_in`, create a 2D plot and save the image
-    in folder.
-    modelno : int
-        Tag for which model run is being plotted, to avoid overwriting files 
+    in folder
+    
+    Parameters
+    --------
+    forest_in : Numpy array
+        Array containing forest evolution over time, can be generated from function forest_fire. 
+    Qno, modelno : int
+        Tags for which specific run is being plotted, to avoid overwriting files 
+    folder : string
+        Defines path to place output images in
+    
+    Returns: None
     '''
 
     # Check to see if folder exists, if not, make it!
