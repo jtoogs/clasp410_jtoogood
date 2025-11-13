@@ -29,7 +29,7 @@ plt.style.use('seaborn-v0_8-poster')
 # Color info: https://matplotlib.org/stable/gallery/color/named_colors.html
 forest_cmap = ListedColormap(['tan', 'forestgreen', 'crimson'])
 
-def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
+def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0.0):
     '''
     Create a forest fire.
 
@@ -102,8 +102,89 @@ def forest_fire(isize=3, jsize=3, nstep=4, pspread=1.0, pignite=0.0, pbare=0):
                 forest[k+1, i, j] = 1
 
     return forest
+
+def disease(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.0, pbare=0.0, pfatal=0.0):
+    '''
+    Create a disease.
+
+    Parameters
+    ----------
+    isize, jsize : int, defaults to 10
+        Set size of population in x and y direction, respectively.
+    nstep : int, defaults to 11
+        Set number of steps to advance solution.
+    pspread : float, defaults to 1.0
+        Set chance that disease can spread in any direction, from 0 to 1
+        (i.e., 0% to 100% chance of spread.)
+    pignite : float, defaults to 0.0
+        Set the chance that a point starts the simulation on fire (or infected)
+        from 0 to 1 (0% to 100%).
+    pbare : float, defaults to 0.0
+        Set the chance that a point starts the simulation on bare (or
+        immune) from 0 to 1 (0% to 100%).
+    pfatal : float, defaults to 0.0
+        Set the chance that an infected person does not survive from 
+        0 to 1 (0% to 100%).
     
-def plot_progression(forest,ax,var,prob):
+    Returns 
+    ---------
+    population : Numpy array
+        Array with dimensions nstep x isize x jsize expressing population evolution over time 
+    '''
+
+    # Creating a forest and making all spots have trees.
+    population = np.zeros((nstep, isize, jsize), dtype=int) + 2
+
+    # Set bare land/immune people:
+    ## ABOVE IGNITE so case zero isn't already immune 
+    loc_bare = rand(isize, jsize) <= pbare
+    population[0, loc_bare] = 1
+
+    # Set initial conditions for BURNING/INFECTED and BARE/IMMUNE
+    # Start with BURNING/INFECTED:
+    if pignite > 0:  # Scatter fire randomly:
+        loc_ignite = np.zeros((isize, jsize), dtype=bool)
+        while loc_ignite.sum() == 0:
+            loc_ignite = rand(isize, jsize) <= pignite
+        # print(f"Starting with {loc_ignite.sum()} points on fire or infected.")
+        population[0, loc_ignite] = 3
+    else:
+        # Set initial fire to center:
+        population[0, isize//2, jsize//2] = 3
+
+    # Loop through time to advance our fire.
+    for k in range(nstep-1):
+        # Assume the next time step is the same as the current:
+        population[k+1, :, :] = population[k, :, :]
+        # Search every spot that is on fire and spread fire as needed.
+        for i in range(isize):
+            for j in range(jsize):
+                # Are we on fire?
+                if population[k, i, j] != 3:
+                    continue
+                # Ah! it burns. Spread fire in each direction.
+                # Spread "up" (i to i-1)
+                if (pspread > rand()) and (i > 0) and (population[k, i-1, j] == 2):
+                    population[k+1, i-1, j] = 3
+                # Spread "Down"
+                if (pspread > rand()) and (i+1 < isize) and (population[k, i+1, j] == 2):
+                    population[k+1, i+1, j] = 3
+                # Spread "East"
+                if (pspread > rand()) and (j > 0) and (population[k, i, j-1] == 2):
+                    population[k+1, i, j-1] = 3
+                # Spread "West"
+                if (pspread > rand()) and (j+1 < jsize) and (population[k, i, j+1] == 2):
+                    population[k+1, i, j+1] = 3
+
+                # But did you die? 
+                if (pfatal > rand()):
+                    population[k+1, i, j] = 0
+                else:
+                    population[k+1, i, j] = 1
+
+    return population
+
+def plot_progression(forest,ax,var,prob,disease=False):
     '''
     Calculate the time dynamics of a forest fire and plot them.
     
@@ -117,6 +198,8 @@ def plot_progression(forest,ax,var,prob):
         Name of variable being changed
     prob : float
         Value of var (above)
+    disease : boolean, defaults to False
+        Changes figure title to appropriately reflect input variable 
     
     Returns: none 
     '''
@@ -133,8 +216,15 @@ def plot_progression(forest,ax,var,prob):
     loc = forest == 1
     bare = 100 * loc.sum(axis=(1, 2))/npoints
 
-    ax.plot(forested, label=f'Forested, {var}={prob*100}%')
-    # ax.plot(bare, label=f'Bare/Burnt, {var}={prob*100}%')
+    loc = forest == 0
+    dead = 100 * loc.sum(axis=(1, 2))/npoints
+
+    if not disease: 
+        ax.plot(forested, label=f'Forested, {var}={prob*100}%')
+        # ax.plot(bare, label=f'Bare/Burnt, {var}={prob*100}%')
+    else: 
+        ax.plot(dead, label=f'Deaths, {var}={prob*100}%')
+        # ax.plot(bare, label=f'Bare/Burnt, {var}={prob*100}%')
 
 def plot_forest2d(forest_in, itime=0):
     '''
@@ -191,7 +281,7 @@ def make_all_2dplots(forest_in, Qno, modelno, folder="Lab04_results/"):
         Array containing forest evolution over time, can be generated from function forest_fire. 
     Qno, modelno : int
         Tags for which specific run is being plotted, to avoid overwriting files 
-    folder : string
+    folder : string, defaults to "Lab04_results/"
         Defines path to place output images in
     
     Returns: None
@@ -211,6 +301,36 @@ def make_all_2dplots(forest_in, Qno, modelno, folder="Lab04_results/"):
         fig = plot_forest2d(forest_in, itime=i)
         fig.savefig(f"forest_Q{Qno}_{modelno}_i{i:04d}.png")
         plt.close()
+
+    # return to original directory 
+    os.chdir("..")
+
+def save_this_plot(fig, filename, folder="Lab04_results/"):
+    '''
+    Given an already-made figure, save it as an image to the specified folder 
+    
+    Parameters
+    --------
+    fig : figure object 
+        The already-made figure to save
+    filename : string
+        Name for the image 
+    folder : string, defaults to "Lab04_results/"
+        Defines path to place output images in
+    
+    Returns: None
+    '''
+
+    # Check to see if folder exists, if not, make it!
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
+    # navigate to folder containing plots 
+    os.chdir(folder)
+
+    # Make a buncha plots.
+    print(f"Saving plot: {filename}")
+    fig.savefig(f"{filename}.png")
 
     # return to original directory 
     os.chdir("..")
@@ -249,7 +369,7 @@ def question_2():
     # vary spreading probability and plot 
     fig, ax = plt.subplots(1,1,figsize=(10,6))
     for i in range(testrange.size):
-        forest = forest_fire(isize=10, jsize=10, nstep=10, pspread=testrange[i], pignite=0.1, pbare=0)
+        forest = forest_fire(isize=10, jsize=10, nstep=11, pspread=testrange[i], pignite=0.1, pbare=0)
         plot_progression(forest,ax,var="pspread",prob=testrange[i])
         # make_all_2dplots(forest,Qno=2,modelno=i+1)
     ax.set_ylim(0,101)
@@ -258,11 +378,12 @@ def question_2():
     ax.set_title('Forest Evolution Over Time')
     ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
     fig.tight_layout()
+    save_this_plot(fig, "progression_Q2_1")
     
     # vary barren probability and plot 
     fig, ax = plt.subplots(1,1,figsize=(10,6))
     for i in range(testrange.size):
-        forest = forest_fire(isize=10, jsize=10, nstep=10, pspread=1.0, pignite=0.1, pbare=testrange[i])
+        forest = forest_fire(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.1, pbare=testrange[i])
         plot_progression(forest,ax,var="pbare",prob=testrange[i])
         # make_all_2dplots(forest,Qno=2,modelno=i+6)
     ax.set_ylim(0,101)
@@ -271,6 +392,7 @@ def question_2():
     ax.set_title('Forest Evolution Over Time')
     ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
     fig.tight_layout()
+    save_this_plot(fig, "progression_Q2_2")
 
 def question_3():
     '''
@@ -280,6 +402,37 @@ def question_3():
 
     Returns: none
     '''
+
+    # set possible probabilities 
+    testrange = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    # vary spreading probability and plot 
+    fig, ax = plt.subplots(1,1,figsize=(10,6))
+    for i in range(testrange.size):
+        forest = disease(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.0, pbare=0.0, pfatal=testrange[i])
+        plot_progression(forest,ax,var="Mortality",prob=testrange[i],disease=True)
+        # make_all_2dplots(forest,Qno=3,modelno=i+1)
+    ax.set_ylim(0,101)
+    ax.set_xlabel('Time (days)')
+    ax.set_ylabel('Percent Total Population')
+    ax.set_title('Population Evolution Over Time')
+    ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
+    fig.tight_layout()
+    save_this_plot(fig, "progression_Q3_1")
+
+    # vary immunity and plot 
+    fig, ax = plt.subplots(1,1,figsize=(10,6))
+    for i in range(testrange.size):
+        forest = disease(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.0, pbare=testrange[i], pfatal=0.2)
+        plot_progression(forest,ax,var="Immunity",prob=testrange[i],disease=True)
+        # make_all_2dplots(forest,Qno=3,modelno=i+1)
+    ax.set_ylim(0,101)
+    ax.set_xlabel('Time (days)')
+    ax.set_ylabel('Percent Total Population')
+    ax.set_title('Population Evolution Over Time')
+    ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
+    fig.tight_layout()
+    save_this_plot(fig, "progression_Q3_2")
 
 
 plt.close('all')
