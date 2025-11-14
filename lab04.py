@@ -136,7 +136,7 @@ def disease(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.0, pbare=0.0, p
     population = np.zeros((nstep, isize, jsize), dtype=int) + 2
 
     # Set bare land/immune people:
-    ## ABOVE IGNITE so case zero isn't already immune 
+    ## ABOVE IGNITE so case zero isn't deemed immune 
     loc_bare = rand(isize, jsize) <= pbare
     population[0, loc_bare] = 1
 
@@ -184,7 +184,7 @@ def disease(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.0, pbare=0.0, p
 
     return population
 
-def plot_progression(forest,ax,var,prob,disease=False):
+def plot_progression(forest,ax,var,prob,disease=False,deaths=False):
     '''
     Calculate the time dynamics of a forest fire and plot them.
     
@@ -198,8 +198,8 @@ def plot_progression(forest,ax,var,prob,disease=False):
         Name of variable being changed
     prob : float
         Value of var (above)
-    disease : boolean, defaults to False
-        Changes figure title to appropriately reflect input variable 
+    disease, deaths : boolean, defaults to False
+        Changes figure title and plotting variable to specified case 
     
     Returns: none 
     '''
@@ -223,8 +223,66 @@ def plot_progression(forest,ax,var,prob,disease=False):
         ax.plot(forested, label=f'Forested, {var}={prob*100}%')
         # ax.plot(bare, label=f'Bare/Burnt, {var}={prob*100}%')
     else: 
-        ax.plot(dead, label=f'Deaths, {var}={prob*100}%')
-        # ax.plot(bare, label=f'Bare/Burnt, {var}={prob*100}%')
+        if not deaths:
+            ax.plot(bare, label=f'Immune People, {var}={prob*100}%') #number of immune people  
+        else:
+            ax.plot(dead, label=f'Deaths, {var}={prob*100}%') #number of fatalities 
+
+def plot_matrix(var):
+    '''
+    Calculate the end states of several disease spread scenarios and plot them.
+    
+    Parameters
+    ----------
+    var : int 
+        Identifier for variable to plot; 0=dead, 1=immune, 2=healthy
+    
+    Returns
+    ---------
+    fig : figure object
+        Figure containing specified plot  
+    '''
+    # set possible probabilities 
+    testrange = np.linspace(0,1,11)
+    results = np.zeros((testrange.size, testrange.size), dtype=int)
+
+    for i in range(testrange.size):
+        for j in range(testrange.size):
+            population = disease(isize=10, jsize=10, nstep=11, pspread=0.5, pignite=0.0, pbare=testrange[i], pfatal=testrange[j])
+
+            ksize, isize, jsize = population.shape
+            npoints = isize * jsize
+
+            if var == 0:
+                varname = "Dead"
+                loc = population == 0
+                dead = 100 * loc.sum(axis=(1, 2))/npoints
+                results[i,j] = dead[-1]
+            if var == 1: 
+                varname = "Immune"
+                loc = population == 1
+                immune = 100 * loc.sum(axis=(1, 2))/npoints
+                results[i,j] = immune[-1]
+            if var == 2: 
+                varname = "Never Infected"
+                loc = population == 2
+                healthy = 100 * loc.sum(axis=(1, 2))/npoints
+                results[i,j] = healthy[-1]
+        
+    fig, ax = plt.subplots(1,1,figsize=(8,6))
+    contour = ax.pcolor(results,cmap='pink',vmin=0.,vmax=100.)
+    ax.set_xticks(np.arange(0,testrange.size,1))
+    ax.set_yticks(np.arange(0,testrange.size,1))
+    ax.set_xticklabels([0,10,20,30,40,50,60,70,80,90,100])
+    ax.set_yticklabels([0,10,20,30,40,50,60,70,80,90,100])
+    ax.set_xlabel('Mortality (%)')
+    ax.set_ylabel('Immunity (%)')
+    cbar = plt.colorbar(contour)
+    cbar.set_label(r'Percent Total Population')
+    ax.set_title(f'Percent of Population {varname} After 10 Days')
+    fig.tight_layout()
+
+    return fig 
 
 def plot_forest2d(forest_in, itime=0):
     '''
@@ -245,7 +303,7 @@ def plot_forest2d(forest_in, itime=0):
     '''
 
     # Create figure and axes
-    fig, ax = plt.subplots(1, 1, figsize=(7, 7))
+    fig, ax = plt.subplots(1, 1, figsize=(8, 8))
     fig.subplots_adjust(left=.117, right=.974, top=.929, bottom=0.03)
 
     # Add our pcolor plot, save the resulting mappable object.
@@ -297,7 +355,7 @@ def make_all_2dplots(forest_in, Qno, modelno, folder="Lab04_results/"):
     # Make a buncha plots.
     ntime, nx, ny = forest_in.shape
     for i in range(ntime):
-        print(f"\tWorking on plot #{modelno}_{i:04d}")
+        print(f"\tSaving plot: forest_Q{Qno}_{modelno}_i{i:04d}")
         fig = plot_forest2d(forest_in, itime=i)
         fig.savefig(f"forest_Q{Qno}_{modelno}_i{i:04d}.png")
         plt.close()
@@ -329,8 +387,9 @@ def save_this_plot(fig, filename, folder="Lab04_results/"):
     os.chdir(folder)
 
     # Make a buncha plots.
-    print(f"Saving plot: {filename}")
+    print(f"\tSaving plot: {filename}")
     fig.savefig(f"{filename}.png")
+    plt.close()
 
     # return to original directory 
     os.chdir("..")
@@ -403,45 +462,23 @@ def question_3():
     Returns: none
     '''
 
-    # set possible probabilities 
-    testrange = np.array([0.0, 0.2, 0.4, 0.6, 0.8, 1])
+    fig = plot_matrix(0)
+    save_this_plot(fig, "matrix_Q3_1")
 
-    # vary spreading probability and plot 
-    fig, ax = plt.subplots(1,1,figsize=(10,6))
-    for i in range(testrange.size):
-        forest = disease(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.0, pbare=0.0, pfatal=testrange[i])
-        plot_progression(forest,ax,var="Mortality",prob=testrange[i],disease=True)
-        # make_all_2dplots(forest,Qno=3,modelno=i+1)
-    ax.set_ylim(0,101)
-    ax.set_xlabel('Time (days)')
-    ax.set_ylabel('Percent Total Population')
-    ax.set_title('Population Evolution Over Time')
-    ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
-    fig.tight_layout()
-    save_this_plot(fig, "progression_Q3_1")
+    fig = plot_matrix(1)
+    save_this_plot(fig, "matrix_Q3_2")
 
-    # vary immunity and plot 
-    fig, ax = plt.subplots(1,1,figsize=(10,6))
-    for i in range(testrange.size):
-        forest = disease(isize=10, jsize=10, nstep=11, pspread=1.0, pignite=0.0, pbare=testrange[i], pfatal=0.2)
-        plot_progression(forest,ax,var="Immunity",prob=testrange[i],disease=True)
-        # make_all_2dplots(forest,Qno=3,modelno=i+1)
-    ax.set_ylim(0,101)
-    ax.set_xlabel('Time (days)')
-    ax.set_ylabel('Percent Total Population')
-    ax.set_title('Population Evolution Over Time')
-    ax.legend(bbox_to_anchor=(1.05, 1),loc='upper left')
-    fig.tight_layout()
-    save_this_plot(fig, "progression_Q3_2")
+    fig = plot_matrix(2)
+    save_this_plot(fig, "matrix_Q3_3")
 
-
+# clear workspace 
 plt.close('all')
 
 print('Question 1:')
-# question_1()
+question_1()
 
 print('Question 2:')
-# question_2()
+question_2()
  
 print('Question 3:') 
 question_3()
