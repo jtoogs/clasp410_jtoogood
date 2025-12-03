@@ -297,6 +297,37 @@ def test_functions():
         print(f"Expected: {dlat_correct}, {lats_correct}")
         print(f"Got: {gen_grid(5)}")
 
+def save_this_plot(fig, filename, folder="Lab05_results/"):
+    '''
+    Given an already-made figure, save it as an image to the specified folder 
+    
+    Parameters
+    --------
+    fig : figure object 
+        The already-made figure to save
+    filename : string
+        Name for the image 
+    folder : string, defaults to "Lab05_results/"
+        Defines path to place output images in
+    
+    Returns: None
+    '''
+
+    # Check to see if folder exists, if not, make it!
+    if not os.path.exists(folder):
+        os.mkdir(folder)
+
+    # navigate to folder containing plots 
+    os.chdir(folder)
+
+    # Make a buncha plots.
+    print(f"\tSaving plot: {filename}")
+    fig.savefig(f"{filename}.png")
+    plt.close()
+
+    # return to original directory 
+    os.chdir("..")
+
 ### FROM LECTURE - MODIFIED### 
 def question_1():
     '''
@@ -327,6 +358,8 @@ def question_1():
     ax.set_ylabel(r'Temp ($^{\circ}C$)')
     ax.set_xlabel('Latitude')
     ax.legend(loc='best')
+
+    save_this_plot(fig,'Lab05_Q1_1')
 
 def question_2():
     '''
@@ -361,6 +394,8 @@ def question_2():
     ax.set_xlabel('Latitude')
     ax.legend(loc='best')
 
+    save_this_plot(fig,'Lab05_Q2_1')
+
 def question_3():
     '''
     Run this code to reproduce all results for question 3.
@@ -392,6 +427,8 @@ def question_3():
     ax.set_xlabel('Latitude')
     ax.legend(loc='best')
 
+    save_this_plot(fig,'Lab05_Q3_1')
+
 def question_4(): 
     '''
     Run this code to reproduce all results for question 4.
@@ -420,6 +457,8 @@ def question_4():
     ax.set_title('Average Global Temperature vs. Solar Multiplier')
     ax.set_ylabel(r'Average Temp ($^{\circ}C$)')
     ax.set_xlabel('Solar Multiplier ($\gamma$)')
+
+    save_this_plot(fig,'Lab05_Q4_1')
 
 # clear workspace 
 plt.close('all')
