@@ -27,7 +27,6 @@ import os
 plt.ion()
 plt.style.use('seaborn-v0_8-poster')
 
-### FROM LECTURE ### 
 # set constants:
 radearth = 6357000.  # Earth radius in meters.
 mxdlyr = 50.         # depth of mixed layer (m)
@@ -35,6 +34,7 @@ sigma = 5.67e-8      # Stefan-Boltzmann constant
 C = 4.2e6            # Heat capacity of water
 rho = 1020           # Density of sea-water (kg/m^3)
 
+### FROM LECTURE ### 
 def gen_grid(npoints=18):
     '''
     Create a evenly spaced latitudinal grid with `npoints` cell centers.
@@ -60,34 +60,38 @@ def gen_grid(npoints=18):
 
     return dlat, lats
 
+### FROM LAB ASSIGNMENT ###
 def temp_warm(lats_in):
     '''
     Create a temperature profile for modern day "warm" earth.
-
     Parameters
     ----------
     lats_in : Numpy array
-        Array of latitudes in degrees where temperature is required
-
+    Array of latitudes in degrees where temperature is required.
+    0 corresponds to the south pole, 180 to the north.
     Returns
     -------
     temp : Numpy array
-        Temperature in Celsius.
+    Temperature in Celsius.
     '''
-    # Set initial temperature curve:
+    # Set initial temperature curve
     T_warm = np.array([-47, -19, -11, 1, 9, 14, 19, 23, 25, 25,
-                       23, 19, 14, 9, 1, -11, -19, -47])
+    23, 19, 14, 9, 1, -11, -19, -47])
+
     # Get base grid:
     npoints = T_warm.size
-    dlat, lats = gen_grid(npoints)
+    dlat = 180 / npoints # Latitude spacing.
+    lats = np.linspace(dlat/2., 180-dlat/2., npoints) # Lat cell centers.
 
+    # Fit a parabola to the above values
     coeffs = np.polyfit(lats, T_warm, 2)
 
-    # Now, return fitting:
+    # Now, return fitting sampled at "lats".
     temp = coeffs[2] + coeffs[1]*lats_in + coeffs[0] * lats_in**2
 
     return temp
 
+### FROM LECTURE - MODIFIED### 
 def temp_const(lats_in, const_temp):
     '''
     Create a temperature profile for an earth with a constant temperature at all locations.
@@ -111,36 +115,34 @@ def temp_const(lats_in, const_temp):
 
     return temp
 
+### FROM LAB ASSIGNMENT ###
 def insolation(S0, lats):
     '''
     Given a solar constant (`S0`), calculate average annual, longitude-averaged
     insolation values as a function of latitude.
     Insolation is returned at position `lats` in units of W/m^2.
-
     Parameters
     ----------
     S0 : float
-        Solar constant (1370 for typical Earth conditions.)
+    Solar constant (1370 for typical Earth conditions.)
     lats : Numpy array
-        Latitudes to output insolation. Following the grid standards set in
-        the diffusion program, polar angle is defined from the south pole.
-        In other words, 0 is the south pole, 180 the north.
-
+    Latitudes to output insolation. Following the grid standards set in
+    the diffusion program, polar angle is defined from the south pole.
+    In other words, 0 is the south pole, 180 the north.
     Returns
     -------
     insolation : numpy array
-        Insolation returned over the input latitudes.
+    Insolation returned over the input latitudes.
     '''
-
     # Constants:
-    max_tilt = 23.5   # tilt of earth in degrees
+    max_tilt = 23.5 # tilt of earth in degrees
 
     # Create an array to hold insolation:
     insolation = np.zeros(lats.size)
 
-    #  Daily rotation of earth reduces solar constant by distributing the sun
-    #  energy all along a zonal band
-    dlong = 0.01  # Use 1/100 of a degree in summing over latitudes
+    # Daily rotation of earth reduces solar constant by distributing the sun
+    # energy all along a zonal band
+    dlong = 0.01 # Use 1/100 of a degree in summing over latitudes
     angle = np.cos(np.pi/180. * np.arange(0, 360, dlong))
     angle[angle < 0] = 0
     total_solar = S0 * angle.sum()
@@ -163,6 +165,7 @@ def insolation(S0, lats):
 
     return insolation
 
+### FROM LECTURE - MODIFIED### 
 def snowball_earth(nlat=18, tfinal=10000, dt=1.0, lam=100., emiss=1.0,
                    init_cond=temp_warm, apply_spherecorr=False, albice=.6,
                    albgnd=.3, apply_insol=False, solar=1370, gamma=1.0):
@@ -279,6 +282,7 @@ def snowball_earth(nlat=18, tfinal=10000, dt=1.0, lam=100., emiss=1.0,
 
     return lats, Temp
 
+### FROM LECTURE - UNUSED### 
 def test_functions():
     '''Test our functions'''
 
@@ -293,6 +297,7 @@ def test_functions():
         print(f"Expected: {dlat_correct}, {lats_correct}")
         print(f"Got: {gen_grid(5)}")
 
+### FROM LECTURE - MODIFIED### 
 def question_1():
     '''
     Run this code to reproduce all results for question 1.
@@ -415,7 +420,6 @@ def question_4():
     ax.set_title('Average Global Temperature vs. Solar Multiplier')
     ax.set_ylabel(r'Average Temp ($^{\circ}C$)')
     ax.set_xlabel('Solar Multiplier ($\gamma$)')
-
 
 # clear workspace 
 plt.close('all')
