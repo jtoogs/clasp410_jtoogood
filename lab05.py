@@ -442,7 +442,9 @@ def question_4():
     temp_cold = temp_const(lats,-60.)
 
     # Determine variables and preallocate output array 
-    gammas = np.concatenate((np.arange(0.4,1.45,0.05), np.arange(1.35,0.35,-0.05)),axis=0)
+    gamma_incr = np.arange(0.4,1.45,0.05)
+    gamma_decr = np.arange(1.4,0.35,-0.05)
+    gammas = np.concatenate((gamma_incr,gamma_decr),axis=0)
     avg_temps = np.zeros(gammas.size)
 
     # Run models 
@@ -453,10 +455,12 @@ def question_4():
 
     # Generate plots for all model runs 
     fig, ax = plt.subplots(1, 1)
-    ax.plot(gammas, avg_temps, color="dodgerblue")
+    ax.plot(gamma_incr, avg_temps[0:gamma_incr.size], color="orangered", label="Gamma increasing")
+    ax.plot(gamma_decr, avg_temps[gamma_incr.size-1:-1], color="dodgerblue", label="Gamma decreasing") 
     ax.set_title('Average Global Temperature vs. Solar Multiplier')
     ax.set_ylabel(r'Average Temp ($^{\circ}C$)')
     ax.set_xlabel('Solar Multiplier ($\gamma$)')
+    ax.legend(loc='best')
 
     save_this_plot(fig,'Lab05_Q4_1')
 
